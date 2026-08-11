@@ -113,7 +113,8 @@ export default function AdminControlTab() {
         toast.success(data.message);
         const updated = {
           ...settings,
-          registration_open: data.data.registration_open
+          registration_open: data.data.registration_open,
+          reg_override: data.data.reg_override
         };
         adminCache.set('settings', updated);
         adminCache.invalidate('stats');
@@ -146,7 +147,8 @@ export default function AdminControlTab() {
         toast.success(data.message);
         const updated = {
           ...settings,
-          workspace_open: data.data.workspace_open
+          workspace_open: data.data.workspace_open,
+          hack_override: data.data.hack_override
         };
         adminCache.set('settings', updated);
         setSettings(updated);
@@ -178,7 +180,8 @@ export default function AdminControlTab() {
         toast.success(data.message);
         const updated = {
           ...settings,
-          problems_open: data.data.problems_open
+          problems_open: data.data.problems_open,
+          prob_override: data.data.prob_override
         };
         adminCache.set('settings', updated);
         setSettings(updated);
@@ -292,7 +295,8 @@ export default function AdminControlTab() {
         const updated = {
           ...settings,
           reg_start_time: data.data.reg_start_time,
-          reg_end_time: data.data.reg_end_time
+          reg_end_time: data.data.reg_end_time,
+          reg_override: data.data.reg_override
         };
         adminCache.set('settings', updated);
         setSettings(updated);
@@ -324,7 +328,13 @@ export default function AdminControlTab() {
       const data = await res.json();
       if (res.ok && data.success) {
         toast.success('Hackathon timeline updated successfully!');
-        const updated = { ...settings, hack_start_time: data.data.hack_start_time, hack_end_time: data.data.hack_end_time };
+        const updated = { 
+          ...settings, 
+          hack_start_time: data.data.hack_start_time, 
+          hack_end_time: data.data.hack_end_time,
+          hack_override: data.data.hack_override,
+          prob_override: data.data.prob_override
+        };
         adminCache.set('settings', updated);
         setSettings(updated);
         if (fetchPlatformSettings) fetchPlatformSettings();
@@ -356,7 +366,9 @@ export default function AdminControlTab() {
 
   const rawRegOpen = settings.registration_open !== 'false' && settings.registration_open !== false;
   let isRegOpen = rawRegOpen;
-  if (settings.reg_start_time && settings.reg_end_time) {
+  if (settings.reg_override === 'true') {
+    isRegOpen = rawRegOpen;
+  } else if (settings.reg_start_time && settings.reg_end_time) {
     isRegOpen = now >= new Date(settings.reg_start_time) && now <= new Date(settings.reg_end_time);
   } else if (settings.reg_start_time) {
     isRegOpen = now >= new Date(settings.reg_start_time);
@@ -366,12 +378,22 @@ export default function AdminControlTab() {
 
   const rawWorkOpen = settings.workspace_open === 'true' || settings.workspace_open === true;
   let isWorkOpen = rawWorkOpen;
-  if (settings.hack_start_time && settings.hack_end_time) {
+  if (settings.hack_override === 'true') {
+    isWorkOpen = rawWorkOpen;
+  } else if (settings.hack_start_time && settings.hack_end_time) {
     isWorkOpen = now >= new Date(settings.hack_start_time) && now <= new Date(settings.hack_end_time);
   } else if (settings.hack_start_time) {
     isWorkOpen = now >= new Date(settings.hack_start_time);
   } else if (settings.hack_end_time) {
     isWorkOpen = now <= new Date(settings.hack_end_time);
+  }
+
+  const rawProbOpen = settings.problems_open === 'true' || settings.problems_open === true;
+  let isProbOpen = rawProbOpen;
+  if (settings.prob_override === 'true') {
+    isProbOpen = rawProbOpen;
+  } else if (settings.hack_start_time) {
+    isProbOpen = now >= new Date(settings.hack_start_time);
   }
 
   if (loading) {
@@ -444,18 +466,18 @@ export default function AdminControlTab() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-slate-900 dark:text-white">Problem Statements</h3>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${(settings.problems_open === 'true' || settings.problems_open === true) ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'}`}>
-                {(settings.problems_open === 'true' || settings.problems_open === true) ? 'OPEN' : 'CLOSED'}
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${isProbOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400'}`}>
+                {isProbOpen ? 'OPEN' : 'CLOSED'}
               </span>
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-xs mb-4">Reveal hackathon problem statements to users.</p>
           </div>
           <button
-            onClick={() => requestToggle('problems', (settings.problems_open === 'true' || settings.problems_open === true) ? 'Close Problems' : 'Open Problems')}
+            onClick={() => requestToggle('problems', isProbOpen ? 'Close Problems' : 'Open Problems')}
             disabled={togglingAction !== null}
-            className={`w-full py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-md ${(settings.problems_open === 'true' || settings.problems_open === true) ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20'}`}
+            className={`w-full py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-md ${isProbOpen ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20'}`}
           >
-            {togglingAction === 'problems' ? 'Updating...' : (settings.problems_open === 'true' || settings.problems_open === true) ? 'Close Problems' : 'Open Problems'}
+            {togglingAction === 'problems' ? 'Updating...' : isProbOpen ? 'Close Problems' : 'Open Problems'}
           </button>
         </div>
 

@@ -3,15 +3,6 @@ import { pool } from '../../config/db.config';
 
 export const getAllRules = async (req: Request, res: Response) => {
     try {
-        // Ensure table exists in case bootstrap hasn't ran yet
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS rules (
-                id SERIAL PRIMARY KEY,
-                title VARCHAR(255) NOT NULL DEFAULT 'Hackathon Rules & Regulations',
-                content TEXT NOT NULL,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
         const result = await pool.query('SELECT * FROM rules ORDER BY id ASC');
         res.status(200).json({
             success: true,

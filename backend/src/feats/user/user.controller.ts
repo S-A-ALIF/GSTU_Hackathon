@@ -1,24 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import * as userService from './user.service';
-import { verifyToken } from '../../config/jwt.config';
 import { sanitizeUserProfile } from './user.sanitizer';
-
-// Helper to extract user ID from auth token
-const getUserIdFromToken = (req: Request): string | null => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-    try {
-        const token = authHeader.split(' ')[1];
-        const decoded = verifyToken(token);
-        return decoded?.id || null;
-    } catch {
-        return null;
-    }
-};
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = (req as any).user?.id || getUserIdFromToken(req);
+        const userId = (req as any).user?.id;
         if (!userId) {
             return res.status(401).json({ status: 'error', message: 'Unauthorized' });
         }
@@ -37,7 +23,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
 
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = (req as any).user?.id || getUserIdFromToken(req);
+        const userId = (req as any).user?.id;
         if (!userId) {
             return res.status(401).json({ status: 'error', message: 'Unauthorized' });
         }
@@ -81,3 +67,4 @@ export const searchUsers = async (req: Request, res: Response, next: NextFunctio
         next(error);
     }
 };
+

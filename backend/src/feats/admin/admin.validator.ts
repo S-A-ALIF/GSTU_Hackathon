@@ -30,10 +30,5 @@ export const adminSchemas = {
             max_team_members: z.union([z.number(), z.string()]).optional(),
             max_teams_per_mentor: z.union([z.number(), z.string()]).optional()
         })
-    }),
-    toggleRegistration: z.object({
-        body: z.object({
-            is_registration_open: z.union([z.boolean(), z.string()]).optional()
-        })
     })
 };

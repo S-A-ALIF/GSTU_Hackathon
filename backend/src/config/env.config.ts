@@ -66,5 +66,11 @@ export const envConfig = {
     }
 } as const;
 
+// Warn if the default JWT secret is used in production — this is a critical security risk
+if (envConfig.env === 'production' && envConfig.jwt.secret === 'super-secret-key-change-in-production') {
+    console.error('🚨 CRITICAL SECURITY WARNING: You are using the default JWT_SECRET in production!');
+    console.error('   Set a strong, random JWT_SECRET in your environment variables immediately.');
+}
+
 // Export the inferred type definition for downstream interface bindings if needed
 export type EnvConfigType = typeof envConfig;

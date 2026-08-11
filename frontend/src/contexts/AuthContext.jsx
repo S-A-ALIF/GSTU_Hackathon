@@ -15,6 +15,11 @@ export function AuthProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rawRegistrationOpen, setRawRegistrationOpen] = useState(true);
+  const [regOverride, setRegOverride] = useState(false);
+  const [rawWorkspaceOpen, setRawWorkspaceOpen] = useState(false);
+  const [hackOverride, setHackOverride] = useState(false);
+  const [rawProblemsOpen, setRawProblemsOpen] = useState(false);
+  const [probOverride, setProbOverride] = useState(false);
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [problemsOpen, setProblemsOpen] = useState(false);
@@ -36,8 +41,11 @@ export function AuthProvider({ children }) {
         const isFeedOpen = data.data.feedback_open !== 'false' && data.data.feedback_open !== false; // Default to true
 
         setRawRegistrationOpen(isRegOpen);
-        setWorkspaceOpen(isWorkOpen);
-        setProblemsOpen(isProbOpen);
+        setRegOverride(data.data.reg_override === 'true');
+        setRawWorkspaceOpen(isWorkOpen);
+        setHackOverride(data.data.hack_override === 'true');
+        setRawProblemsOpen(isProbOpen);
+        setProbOverride(data.data.prob_override === 'true');
         setFeedbackOpen(isFeedOpen);
         setRegStartTime(data.data.reg_start_time || '');
         setRegEndTime(data.data.reg_end_time || '');
@@ -56,7 +64,9 @@ export function AuthProvider({ children }) {
 
       // Registration open/close
       let isRegOpen = rawRegistrationOpen;
-      if (regStartTime && regEndTime) {
+      if (regOverride) {
+        isRegOpen = rawRegistrationOpen;
+      } else if (regStartTime && regEndTime) {
         isRegOpen = now >= new Date(regStartTime) && now <= new Date(regEndTime);
       } else if (regStartTime) {
         isRegOpen = now >= new Date(regStartTime);
@@ -65,22 +75,47 @@ export function AuthProvider({ children }) {
       }
       setRegistrationOpen(isRegOpen);
 
-      // Hackathon submission open/close
+      // Hackathon submission and workspace open/close
       let isSubOpen = true;
-      if (hackStartTime && hackEndTime) {
-        isSubOpen = now >= new Date(hackStartTime) && now <= new Date(hackEndTime);
+      let isWorkOpen = rawWorkspaceOpen;
+      let isProbOpen = rawProblemsOpen;
+      
+      if (hackOverride) {
+        // If manually overridden, strictly use manual toggles
+        isWorkOpen = rawWorkspaceOpen;
+        isSubOpen = rawWorkspaceOpen; // Submission follows workspace if manually toggled
+      } else if (hackStartTime && hackEndTime) {
+        const inWindow = now >= new Date(hackStartTime) && now <= new Date(hackEndTime);
+        isSubOpen = inWindow;
+        
+        if (hackStartTime) {
+          // Workspace unlocks at start and LOCKS when hackathon ends
+          isWorkOpen = inWindow; 
+        }
       } else if (hackStartTime) {
         isSubOpen = now >= new Date(hackStartTime);
+        isWorkOpen = now >= new Date(hackStartTime);
       } else if (hackEndTime) {
         isSubOpen = now <= new Date(hackEndTime);
+        isWorkOpen = now <= new Date(hackEndTime);
       }
+
+      if (probOverride) {
+        isProbOpen = rawProblemsOpen;
+      } else if (hackStartTime) {
+        // Problem set unlocks at start and stays unlocked forever
+        isProbOpen = now >= new Date(hackStartTime);
+      }
+      
       setIsSubmissionOpen(isSubOpen);
+      setWorkspaceOpen(isWorkOpen);
+      setProblemsOpen(isProbOpen);
     };
 
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [rawRegistrationOpen, regStartTime, regEndTime, hackStartTime, hackEndTime]);
+  }, [rawRegistrationOpen, regOverride, rawWorkspaceOpen, hackOverride, rawProblemsOpen, probOverride, regStartTime, regEndTime, hackStartTime, hackEndTime]);
 
   useEffect(() => {
     fetchPlatformSettings();
@@ -214,12 +249,8 @@ export function AuthProvider({ children }) {
     return null; // Or a loading spinner
   }
 
-  const userEmail = (currentUser?.email || userProfile?.email || '').toLowerCase().trim();
-  const isSpecialUser = userEmail === 'soroarazmir56@gmail.com';
-  const effectiveWorkspaceOpen = workspaceOpen || isSpecialUser;
-
   return (
-    <AuthContext.Provider value={{ currentUser, userProfile, setUserProfile, login, register, logout, registrationOpen, workspaceOpen: effectiveWorkspaceOpen, problemsOpen, feedbackOpen, regStartTime, regEndTime, hackStartTime, hackEndTime, isSubmissionOpen, fetchPlatformSettings }}>
+    <AuthContext.Provider value={{ currentUser, userProfile, setUserProfile, login, register, logout, registrationOpen, workspaceOpen, problemsOpen, feedbackOpen, regStartTime, regEndTime, hackStartTime, hackEndTime, isSubmissionOpen, fetchPlatformSettings }}>
       {children}
     </AuthContext.Provider>
   );

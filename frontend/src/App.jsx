@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import AdminMessagePopup from './components/AdminMessagePopup';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -26,14 +27,14 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/team" element={<TeamPage />} />
-              <Route path="/project" element={<ProjectPage />} />
-              <Route path="/problems" element={<ProblemsPage />} />
-              <Route path="/rules" element={<RulesPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/mentor" element={<MentorDashboardPage />} />
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+              <Route path="/project" element={<ProtectedRoute><ProjectPage /></ProtectedRoute>} />
+              <Route path="/problems" element={<ProtectedRoute><ProblemsPage /></ProtectedRoute>} />
+              <Route path="/rules" element={<ProtectedRoute><RulesPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+              <Route path="/mentor" element={<ProtectedRoute requiredRole="mentor"><MentorDashboardPage /></ProtectedRoute>} />
             </Routes>
           </BrowserRouter>
         </ErrorBoundary>
@@ -43,4 +44,5 @@ function App() {
 }
 
 export default App;
+
 

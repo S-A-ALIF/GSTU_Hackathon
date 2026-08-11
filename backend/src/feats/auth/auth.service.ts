@@ -13,15 +13,18 @@ export const registerUser = async (userData: any): Promise<User> => {
         await client.query('BEGIN');
 
         // 0. Check if registration is open and within timeline
-        const settingsRes = await client.query("SELECT key, value FROM platform_settings WHERE key IN ('registration_open', 'reg_start_time', 'reg_end_time')");
+        const settingsRes = await client.query("SELECT key, value FROM platform_settings WHERE key IN ('registration_open', 'reg_start_time', 'reg_end_time', 'reg_override')");
         const settings = settingsRes.rows.reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {} as Record<string, string>);
         
         let isRegOpen = settings.registration_open !== 'false';
+        const override = settings.reg_override === 'true';
         const startTime = settings.reg_start_time;
         const endTime = settings.reg_end_time;
         const now = new Date();
 
-        if (startTime && endTime) {
+        if (override) {
+            isRegOpen = settings.registration_open !== 'false';
+        } else if (startTime && endTime) {
             isRegOpen = now >= new Date(startTime) && now <= new Date(endTime);
         } else if (startTime) {
             isRegOpen = now >= new Date(startTime);

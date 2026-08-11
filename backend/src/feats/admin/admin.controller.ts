@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { pool } from '../../config/db.config';
 import { CustomError } from '../../error/customErrors';
+import { sanitizeAdminTeamUpdate, sanitizeAdminMemberUpdate } from './admin.sanitizer';
 
 /**
  * GET /api/v1/admin/stats
@@ -111,7 +112,9 @@ export const getAllTeams = async (req: Request, res: Response) => {
  */
 export const updateTeam = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name, is_banned, ban_reason } = req.body;
+    const sanitized = sanitizeAdminTeamUpdate(req.body);
+    const { name } = sanitized;
+    const { is_banned, ban_reason } = req.body;
 
     try {
         const query = `
@@ -228,7 +231,9 @@ export const getAllMembers = async (req: Request, res: Response) => {
  */
 export const updateMember = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { role, is_banned, ban_reason, name, student_id, batch_session, phone_number } = req.body;
+    const sanitized = sanitizeAdminMemberUpdate(req.body);
+    const { role, is_banned, ban_reason } = req.body;
+    const { name, student_id, batch_session, phone_number } = sanitized;
 
     const client = await pool.connect();
     try {
@@ -362,11 +367,15 @@ export const toggleRegistration = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('registration_open', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [newVal]
         );
+        // Set manual override active
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('reg_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
+        );
 
         res.status(200).json({
             status: 'success',
             success: true,
-            data: { registration_open: newVal },
+            data: { registration_open: newVal, reg_override: 'true' },
             message: `Registration is now ${newVal === 'true' ? 'OPEN' : 'CLOSED'}`
         });
     } catch (error) {
@@ -389,11 +398,15 @@ export const toggleWorkspace = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('workspace_open', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [newVal]
         );
+        // Set manual override active
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('hack_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
+        );
 
         res.status(200).json({
             status: 'success',
             success: true,
-            data: { workspace_open: newVal },
+            data: { workspace_open: newVal, hack_override: 'true' },
             message: `Project Workspace is now ${newVal === 'true' ? 'OPEN' : 'CLOSED'}`
         });
     } catch (error) {
@@ -416,11 +429,15 @@ export const toggleProblems = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('problems_open', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [newVal]
         );
+        // Set manual override active
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
+        );
 
         res.status(200).json({
             status: 'success',
             success: true,
-            data: { problems_open: newVal },
+            data: { problems_open: newVal, prob_override: 'true' },
             message: `Problem Statements are now ${newVal === 'true' ? 'OPEN' : 'CLOSED'}`
         });
     } catch (error) {
@@ -484,7 +501,7 @@ export const updateTeamLimits = async (req: Request, res: Response) => {
 export const updateRegistrationTimeline = async (req: Request, res: Response) => {
     try {
         const { reg_start_time, reg_end_time } = req.body;
-
+        // Save dates
         await pool.query(
             "INSERT INTO platform_settings (key, value) VALUES ('reg_start_time', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [reg_start_time || '']
@@ -493,11 +510,15 @@ export const updateRegistrationTimeline = async (req: Request, res: Response) =>
             "INSERT INTO platform_settings (key, value) VALUES ('reg_end_time', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [reg_end_time || '']
         );
+        // Clear manual override since they just set a new automated timeline
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('reg_override', 'false') ON CONFLICT (key) DO UPDATE SET value = 'false'"
+        );
 
         res.status(200).json({
             status: 'success',
             success: true,
-            data: { reg_start_time: reg_start_time || '', reg_end_time: reg_end_time || '' },
+            data: { reg_start_time: reg_start_time || '', reg_end_time: reg_end_time || '', reg_override: 'false' },
             message: 'Registration timeline updated successfully'
         });
     } catch (error) {
@@ -513,7 +534,7 @@ export const updateRegistrationTimeline = async (req: Request, res: Response) =>
 export const updateHackathonTimeline = async (req: Request, res: Response) => {
     try {
         const { hack_start_time, hack_end_time } = req.body;
-
+        // Save dates
         await pool.query(
             "INSERT INTO platform_settings (key, value) VALUES ('hack_start_time', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [hack_start_time || '']
@@ -522,11 +543,18 @@ export const updateHackathonTimeline = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('hack_end_time', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
             [hack_end_time || '']
         );
+        // Clear manual override since they just set a new automated timeline
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('hack_override', 'false') ON CONFLICT (key) DO UPDATE SET value = 'false'"
+        );
+        await pool.query(
+            "INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'false') ON CONFLICT (key) DO UPDATE SET value = 'false'"
+        );
 
         res.status(200).json({
             status: 'success',
             success: true,
-            data: { hack_start_time: hack_start_time || '', hack_end_time: hack_end_time || '' },
+            data: { hack_start_time: hack_start_time || '', hack_end_time: hack_end_time || '', hack_override: 'false', prob_override: 'false' },
             message: 'Hackathon timeline updated successfully'
         });
     } catch (error) {
@@ -540,13 +568,13 @@ export const updateHackathonTimeline = async (req: Request, res: Response) => {
  * Bulk delete members with admin protection
  */
 export const deleteMultipleMembers = async (req: Request, res: Response) => {
+    try {
     const { ids } = req.body;
     
     if (!Array.isArray(ids) || ids.length === 0) {
-        throw new CustomError('No members selected', 400);
+        res.status(400).json({ status: 'error', success: false, message: 'No members selected' });
+        return;
     }
-
-    try {
         const result = await pool.query("DELETE FROM users WHERE id = ANY($1) AND role != 'admin' RETURNING id", [ids]);
         
         res.status(200).json({
@@ -570,13 +598,13 @@ export const deleteMultipleMembers = async (req: Request, res: Response) => {
  * Bulk delete teams
  */
 export const deleteMultipleTeams = async (req: Request, res: Response) => {
+    try {
     const { ids } = req.body;
     
     if (!Array.isArray(ids) || ids.length === 0) {
-        throw new CustomError('No teams selected', 400);
+        res.status(400).json({ status: 'error', success: false, message: 'No teams selected' });
+        return;
     }
-
-    try {
         const result = await pool.query('DELETE FROM teams WHERE id = ANY($1) RETURNING id', [ids]);
         
         res.status(200).json({

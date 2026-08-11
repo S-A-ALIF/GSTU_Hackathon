@@ -11,7 +11,12 @@ export const notificationService = {
                     `UPDATE notifications
                      SET action_status = 'expired'
                      WHERE LOWER(recipient_email) = LOWER($1)
-                       AND (message LIKE '%You received a team invitation%' OR message LIKE '%requested to join your team%' OR message LIKE '%invited to mentor the team%')
+                       AND (
+                           type IN ('team_invitation', 'join_request', 'mentor_invitation')
+                           OR message LIKE '%You received a team invitation%'
+                           OR message LIKE '%requested to join your team%'
+                           OR message LIKE '%invited to mentor the team%'
+                       )
                        AND (action_status IS NULL OR action_status = 'pending')
                        AND (
                            created_at < NOW() - INTERVAL '48 hours'
@@ -56,7 +61,12 @@ export const notificationService = {
                  SET is_read = true 
                  WHERE id = $1 
                    AND NOT (
-                       (message LIKE '%You received a team invitation%' OR message LIKE '%requested to join your team%' OR message LIKE '%invited to mentor the team%')
+                       (
+                           type IN ('team_invitation', 'join_request', 'mentor_invitation')
+                           OR message LIKE '%You received a team invitation%'
+                           OR message LIKE '%requested to join your team%'
+                           OR message LIKE '%invited to mentor the team%'
+                       )
                        AND (action_status IS NULL OR action_status = 'pending')
                    )
                  RETURNING *`,
@@ -72,11 +82,11 @@ export const notificationService = {
     /**
      * Create a new notification
      */
-    async createNotification(email: string, message: string, actionStatus: string | null = null) {
+    async createNotification(email: string, message: string, actionStatus: string | null = null, type: string | null = null) {
         try {
             const result = await pool.query(
-                'INSERT INTO notifications (recipient_email, message, action_status) VALUES ($1, $2, $3) RETURNING *',
-                [email, message, actionStatus]
+                'INSERT INTO notifications (recipient_email, message, action_status, type) VALUES ($1, $2, $3, $4) RETURNING *',
+                [email, message, actionStatus, type]
             );
             return result.rows[0];
         } catch (error) {
@@ -95,7 +105,12 @@ export const notificationService = {
                  SET is_read = true 
                  WHERE recipient_email = $1 
                    AND NOT (
-                       (message LIKE '%You received a team invitation%' OR message LIKE '%requested to join your team%' OR message LIKE '%invited to mentor the team%')
+                       (
+                           type IN ('team_invitation', 'join_request', 'mentor_invitation')
+                           OR message LIKE '%You received a team invitation%'
+                           OR message LIKE '%requested to join your team%'
+                           OR message LIKE '%invited to mentor the team%'
+                       )
                        AND (action_status IS NULL OR action_status = 'pending')
                    )
                  RETURNING *`,

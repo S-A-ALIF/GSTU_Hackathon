@@ -24,8 +24,7 @@ app.use(cors({
         if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
             callback(null, true);
         } else {
-            // Allow requesting origin so CORS never blocks hackathon deployment
-            callback(null, true);
+            callback(new Error(`CORS: Origin ${origin} not allowed`), false);
         }
     },
     credentials: true,
@@ -77,6 +76,8 @@ const server = app.listen(PORT, () => {
     console.log(`Environment: ${envConfig.env}`);
     pool.query(`
         ALTER TABLE notifications ADD COLUMN IF NOT EXISTS action_status VARCHAR(20) DEFAULT NULL;
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT NULL;
+        ALTER TABLE notifications ADD COLUMN IF NOT EXISTS admin_message_id UUID DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT DEFAULT NULL;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false;
@@ -117,6 +118,15 @@ const server = app.listen(PORT, () => {
             key VARCHAR(50) PRIMARY KEY,
             value TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS admin_messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            title VARCHAR(255) DEFAULT '',
+            message TEXT NOT NULL,
+            target_type VARCHAR(50) NOT NULL,
+            severity VARCHAR(20) DEFAULT 'info',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         INSERT INTO platform_settings (key, value) VALUES ('registration_open', 'true') ON CONFLICT (key) DO NOTHING;
         INSERT INTO platform_settings (key, value) VALUES ('workspace_open', 'false') ON CONFLICT (key) DO NOTHING;
         INSERT INTO platform_settings (key, value) VALUES ('problems_open', 'false') ON CONFLICT (key) DO NOTHING;
@@ -126,6 +136,9 @@ const server = app.listen(PORT, () => {
         INSERT INTO platform_settings (key, value) VALUES ('reg_end_time', '') ON CONFLICT (key) DO NOTHING;
         INSERT INTO platform_settings (key, value) VALUES ('hack_start_time', '') ON CONFLICT (key) DO NOTHING;
         INSERT INTO platform_settings (key, value) VALUES ('hack_end_time', '') ON CONFLICT (key) DO NOTHING;
+        INSERT INTO platform_settings (key, value) VALUES ('reg_override', 'false') ON CONFLICT (key) DO NOTHING;
+        INSERT INTO platform_settings (key, value) VALUES ('hack_override', 'false') ON CONFLICT (key) DO NOTHING;
+        INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'false') ON CONFLICT (key) DO NOTHING;
     `).catch(err => {
         console.error('Migration error during startup:', err);
     });

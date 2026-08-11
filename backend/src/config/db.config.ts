@@ -25,7 +25,9 @@ const poolConfig: PoolConfig = {
     keepAlive: true,
     keepAliveInitialDelayMillis: 5000,
     
-    // Explicitly enforce SSL when running in a production ecosystem or using Neon
+    // SSL: Neon and similar serverless Postgres providers require SSL but their pooler uses certificates
+    // that don't match the hostname, so rejectUnauthorized must be false for compatibility.
+    // For self-hosted databases, use { rejectUnauthorized: true, ca: fs.readFileSync('path/to/ca.pem') }
     ssl: (envConfig.env === 'production' || envConfig.db.host.includes('.neon.tech')) ? { rejectUnauthorized: false } : false
 };
 

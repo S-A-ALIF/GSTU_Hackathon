@@ -168,7 +168,7 @@ export const teamService = {
 
         // 4. Check cooldown for recent invite
         const existingInviteRes = await pool.query(
-            'SELECT id, created_at FROM team_invitations WHERE team_id = $1 AND email = $2 AND is_used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+            'SELECT id, created_at FROM team_invitations WHERE team_id = $1 AND LOWER(email) = LOWER($2) AND is_used = false AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
             [teamId, inviteeEmail]
         );
 
@@ -598,6 +598,30 @@ export const teamService = {
             throw new Error('Project has already been submitted and cannot be edited.');
         }
 
+        // Check if submission is open
+        const settingsRes = await pool.query("SELECT key, value FROM platform_settings WHERE key IN ('hack_start_time', 'hack_end_time', 'workspace_open', 'hack_override')");
+        const settings = settingsRes.rows.reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {} as Record<string, string>);
+        
+        const startTime = settings.hack_start_time;
+        const endTime = settings.hack_end_time;
+        const override = settings.hack_override === 'true';
+        const now = new Date();
+        let isSubOpen = true;
+
+        if (override) {
+            isSubOpen = settings.workspace_open === 'true';
+        } else if (startTime && endTime) {
+            isSubOpen = now >= new Date(startTime) && now <= new Date(endTime);
+        } else if (startTime) {
+            isSubOpen = now >= new Date(startTime);
+        } else if (endTime) {
+            isSubOpen = now <= new Date(endTime);
+        }
+
+        if (!isSubOpen) {
+            throw new Error('Project submission is currently closed.');
+        }
+
         await pool.query(
             'UPDATE teams SET repo_url = $1, live_url = $2, video_url = $3 WHERE id = $4',
             [repoUrl, liveUrl, videoUrl, team.id]
@@ -619,6 +643,30 @@ export const teamService = {
         }
         if (!team.repo_url?.trim() || !team.live_url?.trim() || !team.video_url?.trim()) {
             throw new Error('Please save all three valid submission links (Live Site, Video, and GitHub Repo) before submitting.');
+        }
+
+        // Check if submission is open
+        const settingsRes = await pool.query("SELECT key, value FROM platform_settings WHERE key IN ('hack_start_time', 'hack_end_time', 'workspace_open', 'hack_override')");
+        const settings = settingsRes.rows.reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {} as Record<string, string>);
+        
+        const startTime = settings.hack_start_time;
+        const endTime = settings.hack_end_time;
+        const override = settings.hack_override === 'true';
+        const now = new Date();
+        let isSubOpen = true;
+
+        if (override) {
+            isSubOpen = settings.workspace_open === 'true';
+        } else if (startTime && endTime) {
+            isSubOpen = now >= new Date(startTime) && now <= new Date(endTime);
+        } else if (startTime) {
+            isSubOpen = now >= new Date(startTime);
+        } else if (endTime) {
+            isSubOpen = now <= new Date(endTime);
+        }
+
+        if (!isSubOpen) {
+            throw new Error('Project submission is currently closed.');
         }
 
         await pool.query('UPDATE teams SET is_submitted = true, submitted_at = CURRENT_TIMESTAMP WHERE id = $1', [team.id]);
