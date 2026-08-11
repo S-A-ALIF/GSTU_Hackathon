@@ -154,6 +154,48 @@ export const updateTeam = async (req: Request, res: Response) => {
 };
 
 /**
+ * DELETE /api/v1/admin/messages/:id
+ * Delete a sent admin message and recall it from all recipients
+ */
+export const deleteAdminMessage = async (req: Request, res: Response) => {
+    const client = await pool.connect();
+    try {
+        const { id } = req.params;
+        
+        await client.query('BEGIN');
+        
+        // Delete all notifications sent to users corresponding to this broadcast
+        await client.query('DELETE FROM notifications WHERE admin_message_id = $1', [id]);
+        
+        // Delete the message from the admin history
+        const deleteRes = await client.query('DELETE FROM admin_messages WHERE id = $1 RETURNING id', [id]);
+        
+        if (deleteRes.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ status: 'error', success: false, message: 'Message not found' });
+        }
+        
+        await client.query('COMMIT');
+        
+        res.status(200).json({
+            status: 'success',
+            success: true,
+            message: 'Message deleted and successfully recalled from all recipients.'
+        });
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error('Error deleting admin message:', error);
+        res.status(500).json({
+            status: 'error',
+            success: false,
+            message: 'Failed to delete admin message'
+        });
+    } finally {
+        client.release();
+    }
+};
+
+/**
  * DELETE /api/v1/admin/teams/:id
  * Delete a team permanently
  */
@@ -770,10 +812,34 @@ export const getAllSubmissions = async (req: Request, res: Response): Promise<vo
                 t.video_url,
                 t.submitted_at,
                 u.email as leader_email,
-                ui.name as leader_name
+                ui.name as leader_name,
+                m.email as mentor_email,
+                mi.name as mentor_name,
+                COALESCE(
+                    (
+                        SELECT json_agg(
+                            json_build_object(
+                                'id', m_user.id,
+                                'email', m_user.email,
+                                'role', m_user.role,
+                                'name', COALESCE(m_info.name, ''),
+                                'student_id', COALESCE(m_info.student_id, ''),
+                                'batch_session', COALESCE(m_info.batch_session, ''),
+                                'phone_number', COALESCE(m_info.phone_number, '')
+                            )
+                        )
+                        FROM team_members tm
+                        JOIN users m_user ON tm.user_id = m_user.id
+                        LEFT JOIN user_info m_info ON m_user.id = m_info.user_id
+                        WHERE tm.team_id = t.id
+                    ),
+                    '[]'::json
+                ) as members
             FROM teams t
             LEFT JOIN users u ON t.leader_id = u.id
             LEFT JOIN user_info ui ON u.id = ui.user_id
+            LEFT JOIN users m ON t.mentor_id = m.id
+            LEFT JOIN user_info mi ON m.id = mi.user_id
             WHERE t.is_submitted = true
             ORDER BY t.submitted_at DESC
         `;
@@ -826,18 +892,18 @@ export const toggleFeedback = async (req: Request, res: Response) => {
  * POST /api/v1/admin/submissions/:teamId/cancel
  * Cancels a team's submission
  */
-export const cancelSubmission = async (req: Request, res: Response): Promise<void> => {
+export const rejectSubmission = async (req: Request, res: Response): Promise<void> => {
     const { teamId } = req.params;
+    const { reason } = req.body;
     try {
-        const query = `
-            UPDATE teams
-            SET is_submitted = false, submitted_at = NULL
-            WHERE id = $1
-            RETURNING id, name
-        `;
-        const result = await pool.query(query, [teamId]);
+        const teamResult = await pool.query(`
+            SELECT t.id, t.name, t.leader_id, u.email as leader_email 
+            FROM teams t 
+            JOIN users u ON t.leader_id = u.id 
+            WHERE t.id = $1
+        `, [teamId]);
 
-        if (result.rowCount === 0) {
+        if (teamResult.rowCount === 0) {
             res.status(404).json({
                 status: 'error',
                 success: false,
@@ -846,17 +912,37 @@ export const cancelSubmission = async (req: Request, res: Response): Promise<voi
             return;
         }
 
+        const team = teamResult.rows[0];
+
+        await pool.query(`
+            UPDATE teams
+            SET is_submitted = false, submitted_at = NULL, github_link = NULL, drive_link = NULL
+            WHERE id = $1
+        `, [teamId]);
+
+        let msg = "The required submissions you made, has been rejected by the admin";
+        if (reason && reason.trim() !== '') {
+            msg += `. Reason: ${reason.trim()}`;
+        }
+
+        if (team.leader_email) {
+            await pool.query(
+                'INSERT INTO notifications (recipient_email, message) VALUES ($1, $2)',
+                [team.leader_email, msg]
+            );
+        }
+
         res.status(200).json({
             status: 'success',
             success: true,
-            message: `Submission for team ${result.rows[0].name} has been cancelled.`
+            message: `Submission for team ${team.name} has been rejected.`
         });
     } catch (error: any) {
-        console.error('[AdminController] Error cancelling submission:', error);
+        console.error('[AdminController] Error rejecting submission:', error);
         res.status(500).json({
             status: 'error',
             success: false,
-            message: 'Internal server error while cancelling submission'
+            message: 'Internal server error while rejecting submission'
         });
     }
 };

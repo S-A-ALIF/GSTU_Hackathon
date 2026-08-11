@@ -56,6 +56,8 @@ export default function AdminMessagesTab() {
   // History Modal State
   const [selectedHistoryModal, setSelectedHistoryModal] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(null); // holds message ID to delete
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Data for selector lists
   const [teamsList, setTeamsList] = useState([]);
@@ -272,6 +274,30 @@ export default function AdminMessagesTab() {
     setViewMode('compose');
   };
 
+  const handleDeleteMessage = async (id) => {
+    try {
+      setIsDeleting(true);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/v1/admin/messages/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success('Message deleted and recalled successfully!');
+        setHistory(prev => prev.filter(msg => msg.id !== id));
+        setDeleteModalOpen(null);
+      } else {
+        toast.error(data.message || 'Failed to delete message');
+      }
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      toast.error('Error connecting to server');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Preview helper
   const getSeverityBadge = () => {
     if (severity === 'urgent') {
@@ -358,19 +384,30 @@ export default function AdminMessagesTab() {
                         {clampNotificationMessage(msg.message)}
                       </p>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditMessageId(msg.id);
-                        setTitle(msg.title || '');
-                        setMessage(msg.message || '');
-                        setSeverity(msg.severity || 'info');
-                        setViewMode('compose');
-                      }}
-                      className="shrink-0 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-lg transition-colors"
-                    >
-                      Edit Message
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditMessageId(msg.id);
+                          setTitle(msg.title || '');
+                          setMessage(msg.message || '');
+                          setSeverity(msg.severity || 'info');
+                          setViewMode('compose');
+                        }}
+                        className="shrink-0 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-lg transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteModalOpen(msg.id);
+                        }}
+                        className="shrink-0 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold text-xs rounded-lg transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -805,6 +842,50 @@ export default function AdminMessagesTab() {
                 <div className="text-sm md:text-base text-slate-700 dark:text-slate-200 font-medium whitespace-pre-line leading-relaxed prose prose-sm dark:prose-invert max-w-none [overflow-wrap:anywhere]" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatNotificationMessage(selectedHistoryModal.message, false)) }}>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && createPortal(
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 max-w-md w-full rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform scale-100 transition-all duration-300">
+            <div className="p-6 pb-4 flex flex-col items-center text-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 flex items-center justify-center text-3xl">
+                ⚠️
+              </div>
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white text-xl mb-2">Delete Broadcast?</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Are you sure you want to delete this message? This action will immediately recall and remove the notification from all recipients' dashboards.
+                </p>
+              </div>
+            </div>
+            <div className="p-6 pt-2 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(null)}
+                disabled={isDeleting}
+                className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 text-slate-700 dark:text-slate-200 font-bold rounded-xl transition-colors text-sm w-full"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDeleteMessage(deleteModalOpen)}
+                disabled={isDeleting}
+                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-500/20 dark:shadow-none transition-all flex items-center justify-center gap-2 text-sm w-full"
+              >
+                {isDeleting && (
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+              </button>
             </div>
           </div>
         </div>,

@@ -22,8 +22,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
     
     fetchCount();
     window.addEventListener('feedbackChanged', fetchCount);
-    // Refresh every 30 seconds to stay updated
-    const interval = setInterval(fetchCount, 30000);
+    // Refresh every 5 seconds for real-time updates
+    const interval = setInterval(fetchCount, 5000);
     return () => {
       window.removeEventListener('feedbackChanged', fetchCount);
       clearInterval(interval);
@@ -148,7 +148,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 title={isCollapsed ? item.label : undefined}
-                className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all ${
+                className={`flex flex-col md:flex-row items-center justify-center md:justify-between gap-1 md:gap-3 px-2 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all w-full ${
                   isCollapsed ? 'md:justify-center md:px-2' : ''
                 } ${
                   isActive
@@ -156,15 +156,24 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <div className="relative">
-                  {item.icon}
-                  {item.count > 0 && (
-                    <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-slate-900">
-                      {item.count > 9 ? '9+' : item.count}
-                    </span>
-                  )}
+                <div className="flex items-center gap-1 md:gap-3 w-full md:w-auto justify-center md:justify-start">
+                  <div className="relative">
+                    {item.icon}
+                    {/* Show a small dot on the icon ONLY when collapsed */}
+                    {(item.count > 0 && isCollapsed) && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 shadow-sm ring-2 ring-slate-900 md:hidden"></span>
+                    )}
+                  </div>
+                  <div className={`items-center gap-2 truncate text-[10px] sm:text-xs md:text-sm ${isCollapsed ? 'hidden' : 'flex'}`}>
+                    <span>{item.label}</span>
+                  </div>
                 </div>
-                <span className={`truncate text-[10px] sm:text-xs md:text-sm ${isCollapsed ? 'md:hidden' : ''}`}>{item.label}</span>
+                {/* Show the pill badge on the right border ONLY when expanded */}
+                {(item.count > 0 && !isCollapsed) && (
+                  <span className="hidden md:flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-slate-900/10 shrink-0">
+                    {item.count > 99 ? '99+' : item.count}
+                  </span>
+                )}
               </button>
             );
           })}

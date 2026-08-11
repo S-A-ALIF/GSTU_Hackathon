@@ -7,8 +7,14 @@ export default function AdminSubmissionsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [cancelModal, setCancelModal] = useState({ isOpen: false, teamId: null, teamName: '' });
-  const [isCancelling, setIsCancelling] = useState(false);
+  const [rejectModal, setRejectModal] = useState({ isOpen: false, teamId: null, teamName: '' });
+  const [rejectReason, setRejectReason] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
+  
+  // Modals state
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+
   const { currentUser } = useAuth();
 
   const fetchSubmissions = async () => {
@@ -38,30 +44,35 @@ export default function AdminSubmissionsTab() {
     fetchSubmissions();
   }, []);
 
-  const confirmCancelSubmission = async () => {
+  const confirmRejectSubmission = async () => {
     try {
-      setIsCancelling(true);
+      setIsRejecting(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/v1/admin/submissions/${cancelModal.teamId}/cancel`, {
+      const res = await fetch(`${API_URL}/api/v1/admin/submissions/${rejectModal.teamId}/reject`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({ reason: rejectReason })
       });
       const data = await res.json();
       if (data.success) {
         fetchSubmissions();
-        setCancelModal({ isOpen: false, teamId: null, teamName: '' });
+        setRejectModal({ isOpen: false, teamId: null, teamName: '' });
+        setRejectReason('');
       } else {
-        setError(data.message || 'Failed to cancel submission.');
-        setCancelModal({ isOpen: false, teamId: null, teamName: '' });
+        setError(data.message || 'Failed to reject submission.');
+        setRejectModal({ isOpen: false, teamId: null, teamName: '' });
+        setRejectReason('');
       }
     } catch (err) {
-      console.error('Failed to cancel submission:', err);
-      setError(err.message || 'Failed to cancel submission.');
-      setCancelModal({ isOpen: false, teamId: null, teamName: '' });
+      console.error('Failed to reject submission:', err);
+      setError(err.message || 'Failed to reject submission.');
+      setRejectModal({ isOpen: false, teamId: null, teamName: '' });
+      setRejectReason('');
     } finally {
-      setIsCancelling(false);
+      setIsRejecting(false);
     }
   };
 
@@ -150,7 +161,12 @@ export default function AdminSubmissionsTab() {
                 {filteredSubmissions.map((sub) => (
                   <tr key={sub.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
                     <td className="py-4 px-6">
-                      <div className="font-bold text-slate-900 dark:text-white">{sub.name}</div>
+                      <button 
+                        onClick={() => setSelectedTeam(sub)}
+                        className="font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-left transition-colors"
+                      >
+                        {sub.name}
+                      </button>
                     </td>
                     <td className="py-4 px-6">
                       <div className="text-sm font-medium text-slate-900 dark:text-slate-200">{sub.leader_name || 'N/A'}</div>
@@ -207,12 +223,15 @@ export default function AdminSubmissionsTab() {
                     </td>
                     <td className="py-4 px-6 text-right whitespace-nowrap">
                       <button
-                        onClick={() => setCancelModal({ isOpen: true, teamId: sub.id, teamName: sub.name })}
+                        onClick={() => {
+                          setRejectModal({ isOpen: true, teamId: sub.id, teamName: sub.name });
+                          setRejectReason('');
+                        }}
                         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors border border-transparent hover:border-red-200 dark:hover:border-red-800"
-                        title="Cancel Submission"
+                        title="Reject Submission"
                       >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </td>
@@ -224,35 +243,221 @@ export default function AdminSubmissionsTab() {
         </div>
       )}
 
-      {/* Cancel Submission Confirmation Modal */}
-      {cancelModal.isOpen && (
+      {/* Reject Submission Confirmation Modal */}
+      {rejectModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <h3 className="text-xl font-bold text-white mb-2">Cancel Submission</h3>
-            <p className="text-slate-300 mb-6 text-sm leading-relaxed">
-              Are you sure you want to cancel the submission for <strong>{cancelModal.teamName}</strong>? They will be removed from this list and will need to submit again from their workspace.
+            <h3 className="text-xl font-bold text-white mb-2">Reject Submission</h3>
+            <p className="text-slate-300 mb-4 text-sm leading-relaxed">
+              Are you sure you want to reject the submission for <strong>{rejectModal.teamName}</strong>? They will be removed from this list and will need to submit again from their workspace. A notification will be sent to the Team Leader.
             </p>
+            <div className="mb-6">
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">
+                Reason for Rejection (Optional)
+              </label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="e.g. Invalid GitHub link..."
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none h-20"
+              />
+            </div>
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setCancelModal({ isOpen: false, teamId: null, teamName: '' })}
-                disabled={isCancelling}
+                onClick={() => {
+                  setRejectModal({ isOpen: false, teamId: null, teamName: '' });
+                  setRejectReason('');
+                }}
+                disabled={isRejecting}
                 className="px-4 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors font-medium text-sm disabled:opacity-50"
               >
                 Go Back
               </button>
               <button
-                onClick={confirmCancelSubmission}
-                disabled={isCancelling}
+                onClick={confirmRejectSubmission}
+                disabled={isRejecting}
                 className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30 transition-colors flex items-center gap-2"
               >
-                {isCancelling ? (
+                {isRejecting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    Cancelling...
+                    Rejecting...
                   </>
                 ) : (
-                  'Confirm Cancel'
+                  'Confirm Reject'
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Info Modal */}
+      {selectedTeam && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex justify-between items-start mb-6 shrink-0">
+              <div>
+                <h3 className="text-2xl font-black text-white">{selectedTeam.name}</h3>
+                <p className="text-slate-400 text-sm mt-1">
+                  Team Size: <span className="text-white font-bold">{selectedTeam.members ? selectedTeam.members.length : 0} members</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedTeam(null)}
+                className="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 pr-2 space-y-6 custom-scrollbar">
+              {/* Mentor Info */}
+              {selectedTeam.mentor_email ? (
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-emerald-500 mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                    Team Mentor
+                  </h4>
+                  <button 
+                    onClick={() => setSelectedUser({ 
+                      name: selectedTeam.mentor_name, 
+                      email: selectedTeam.mentor_email, 
+                      role: 'mentor'
+                    })}
+                    className="w-full text-left p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-800 transition-colors flex items-center justify-between group"
+                  >
+                    <div>
+                      <div className="text-white font-bold group-hover:text-emerald-400 transition-colors">{selectedTeam.mentor_name || 'N/A'}</div>
+                      <div className="text-slate-400 text-sm mt-0.5">{selectedTeam.mentor_email}</div>
+                    </div>
+                    <svg className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-3">Team Mentor</h4>
+                  <div className="p-3 rounded-xl border border-dashed border-slate-700 text-slate-500 text-sm text-center">
+                    No mentor assigned
+                  </div>
+                </div>
+              )}
+
+              {/* Members List */}
+              <div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-blue-400 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Team Members
+                </h4>
+                <div className="space-y-2">
+                  {selectedTeam.members && selectedTeam.members.length > 0 ? selectedTeam.members.map(member => (
+                    <button 
+                      key={member.id}
+                      onClick={() => setSelectedUser(member)}
+                      className="w-full text-left p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-blue-500/30 hover:bg-slate-800 transition-colors flex items-center justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold group-hover:text-blue-400 transition-colors">
+                            {member.name || member.email.split('@')[0]}
+                          </span>
+                          {selectedTeam.leader_id === member.id && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-500 border border-amber-500/20">
+                              Leader
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-slate-400 text-sm mt-0.5">{member.email}</div>
+                      </div>
+                      <svg className="w-4 h-4 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )) : (
+                    <div className="p-3 rounded-xl border border-dashed border-slate-700 text-slate-500 text-sm text-center">
+                      No members found
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Info Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${
+                  selectedUser.role === 'mentor' 
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                }`}>
+                  {(selectedUser.name?.[0] || selectedUser.email?.[0] || '?').toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-white">{selectedUser.name || 'Unknown User'}</h3>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-0.5">
+                    {selectedUser.role === 'mentor' ? 'Mentor' : 'Participant'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-full transition-colors shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Email Address</p>
+                <p className="text-sm font-medium text-slate-200">{selectedUser.email}</p>
+              </div>
+              
+              {selectedUser.role !== 'mentor' && (
+                <>
+                  <div className="h-px w-full bg-slate-700/50 my-2"></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Student ID</p>
+                      <p className="text-sm font-medium text-slate-200">{selectedUser.student_id || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Batch / Session</p>
+                      <p className="text-sm font-medium text-slate-200">{selectedUser.batch_session || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="h-px w-full bg-slate-700/50 my-2"></div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Phone Number</p>
+                    <p className="text-sm font-medium text-slate-200">{selectedUser.phone_number || 'N/A'}</p>
+                  </div>
+                </>
+              )}
+            </div>
+            
+            <div className="mt-6">
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="w-full px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors text-sm"
+              >
+                Close Details
               </button>
             </div>
           </div>
