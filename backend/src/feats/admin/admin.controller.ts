@@ -117,32 +117,59 @@ export const updateTeam = async (req: Request, res: Response) => {
     const { is_banned, ban_reason } = req.body;
 
     try {
-        const query = `
-            UPDATE teams
-            SET 
-                name = COALESCE($1, name),
-                is_banned = COALESCE($2, is_banned),
-                ban_reason = $3
-            WHERE id = $4
-            RETURNING *
-        `;
-        const result = await pool.query(query, [
-            name !== undefined ? name : null,
-            is_banned !== undefined ? is_banned : null,
-            ban_reason !== undefined ? ban_reason : null,
-            id
-        ]);
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        if (result.rows.length === 0) {
-            throw new CustomError('Team not found', 404);
+            const query = `
+                UPDATE teams
+                SET 
+                    name = COALESCE($1, name),
+                    is_banned = COALESCE($2, is_banned),
+                    ban_reason = $3
+                WHERE id = $4
+                RETURNING *
+            `;
+            const result = await client.query(query, [
+                name !== undefined ? name : null,
+                is_banned !== undefined ? is_banned : null,
+                ban_reason !== undefined ? ban_reason : null,
+                id
+            ]);
+
+            if (result.rows.length === 0) {
+                throw new CustomError('Team not found', 404);
+            }
+
+            // Option A: Automatically ban/unban all members when team is banned/unbanned
+            if (is_banned === true) {
+                await client.query(`
+                    UPDATE users 
+                    SET is_banned = true, ban_reason = COALESCE($1, 'Your team has been banned.')
+                    WHERE id IN (SELECT user_id FROM team_members WHERE team_id = $2)
+                `, [ban_reason !== undefined ? ban_reason : null, id]);
+            } else if (is_banned === false) {
+                await client.query(`
+                    UPDATE users 
+                    SET is_banned = false, ban_reason = null
+                    WHERE id IN (SELECT user_id FROM team_members WHERE team_id = $1)
+                `, [id]);
+            }
+
+            await client.query('COMMIT');
+
+            res.status(200).json({
+                status: 'success',
+                success: true,
+                data: result.rows[0],
+                message: 'Team updated successfully'
+            });
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
         }
-
-        res.status(200).json({
-            status: 'success',
-            success: true,
-            data: result.rows[0],
-            message: 'Team updated successfully'
-        });
     } catch (error: any) {
         console.error('Error updating team:', error);
         res.status(error.statusCode || 500).json({

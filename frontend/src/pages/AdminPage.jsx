@@ -73,20 +73,20 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
       {/* Topbar: Only Notification and Profile */}
-      <nav className="bg-slate-900 text-white py-4 px-6 lg:px-12 flex justify-between items-center shadow-md relative z-50 shrink-0">
-        <Link to="/" className="text-2xl font-black tracking-tighter hover:opacity-80 transition-opacity">
+      <nav className="bg-slate-900 text-white py-3 sm:py-4 px-3 sm:px-6 lg:px-12 flex justify-between items-center shadow-md relative z-50 shrink-0">
+        <Link to="/" className="text-xl sm:text-2xl font-black tracking-tighter hover:opacity-80 transition-opacity truncate mr-2">
           Hackathon<span className="text-blue-500">Admin</span>
         </Link>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
           {/* Notification Bell */}
           <NotificationDropdown />
 
-          <div className="relative flex items-center space-x-4" ref={menuRef}>
+          <div className="relative flex items-center space-x-2 sm:space-x-4" ref={menuRef}>
             {/* Profile Icon */}
             <button 
               onClick={() => setActiveTab('profile')}
-              className={`w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 border-2 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-800 hover:bg-slate-700 border-2 transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 activeTab === 'profile' ? 'border-blue-500 bg-slate-700' : 'border-slate-700'
               }`}
               title="Profile"
@@ -99,9 +99,9 @@ export default function AdminPage() {
             {/* Hamburger Menu */}
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-1 sm:p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             </button>

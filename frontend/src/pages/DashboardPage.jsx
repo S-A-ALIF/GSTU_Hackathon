@@ -259,7 +259,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <nav className="grid grid-cols-4 gap-1 md:flex md:flex-col md:space-y-2">
+            <nav className="flex overflow-x-auto gap-2 md:flex-col md:gap-0 md:space-y-2 pb-2 md:pb-0 hide-scrollbar w-full">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                     onClick={() => !isDisabled && setActiveTab(item.id)}
                     disabled={isDisabled}
                     title={!isSidebarOpen ? item.label : undefined}
-                    className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all ${
+                    className={`shrink-0 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-3 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all ${
                       isDisabled 
                         ? 'text-slate-600 cursor-not-allowed opacity-50 bg-transparent'
                         : isActive

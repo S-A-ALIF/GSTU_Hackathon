@@ -206,10 +206,14 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
 
   // Close dropdown on click outside
   useEffect(() => {
-    const closeDropdown = () => setActiveDropdownId(null);
-    window.addEventListener('click', closeDropdown);
-    return () => window.removeEventListener('click', closeDropdown);
-  }, []);
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-menu-container') && activeDropdownId) {
+        setActiveDropdownId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeDropdownId]);
 
   useEffect(() => {
     fetchTeam();
@@ -364,20 +368,20 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                       onClick={() => setSelectedMember(member)}
                       className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-blue-300 hover:shadow-md cursor-pointer group"
                     >
-                      <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                      <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 w-full">
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
                           {(member.name || member.email).charAt(0).toUpperCase()}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words whitespace-normal">
                             {member.name || member.email}
                           </p>
-                          <p className="text-xs sm:text-sm font-semibold text-slate-500 truncate">
+                          <p className="text-xs sm:text-sm font-semibold text-slate-500 break-words whitespace-normal">
                             Student ID: <span className="text-slate-700 font-bold">{member.student_id && member.student_id !== 'N/A' ? member.student_id : 'Not provided'}</span>
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
+                      <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto shrink-0 mt-2 sm:mt-0">
                         {member.id === team.leader_id && (
                           <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full uppercase tracking-wide">
                             Leader
@@ -389,10 +393,9 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                         </span>
                         
                         {!readOnly && team.leader_id === currentUser?.id && member.id !== team.leader_id && (
-                          <div className="relative inline-block text-left" onClick={e => e.stopPropagation()}>
+                          <div className="relative inline-block text-left dropdown-menu-container">
                             <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={() => {
                                 setActiveDropdownId(activeDropdownId === member.id ? null : member.id);
                               }}
                               className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"

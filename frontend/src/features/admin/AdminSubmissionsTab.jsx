@@ -298,7 +298,7 @@ export default function AdminSubmissionsTab() {
           <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[85vh]">
             <div className="flex justify-between items-start mb-6 shrink-0">
               <div>
-                <h3 className="text-2xl font-black text-white">{selectedTeam.name}</h3>
+                <h3 className="text-2xl font-black text-white break-words">{selectedTeam.name}</h3>
                 <p className="text-slate-400 text-sm mt-1">
                   Team Size: <span className="text-white font-bold">{selectedTeam.members ? selectedTeam.members.length : 0} members</span>
                 </p>
@@ -332,11 +332,11 @@ export default function AdminSubmissionsTab() {
                     })}
                     className="w-full text-left p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-800 transition-colors flex items-center justify-between group"
                   >
-                    <div>
-                      <div className="text-white font-bold group-hover:text-emerald-400 transition-colors">{selectedTeam.mentor_name || 'N/A'}</div>
-                      <div className="text-slate-400 text-sm mt-0.5">{selectedTeam.mentor_email}</div>
+                    <div className="min-w-0 pr-2">
+                      <div className="text-white font-bold group-hover:text-emerald-400 transition-colors truncate">{selectedTeam.mentor_name || 'N/A'}</div>
+                      <div className="text-slate-400 text-sm mt-0.5 truncate">{selectedTeam.mentor_email}</div>
                     </div>
-                    <svg className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 shrink-0 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -365,20 +365,20 @@ export default function AdminSubmissionsTab() {
                       onClick={() => setSelectedUser(member)}
                       className="w-full text-left p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-blue-500/30 hover:bg-slate-800 transition-colors flex items-center justify-between group"
                     >
-                      <div>
+                      <div className="min-w-0 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-white font-bold group-hover:text-blue-400 transition-colors">
+                          <span className="text-white font-bold group-hover:text-blue-400 transition-colors truncate">
                             {member.name || member.email.split('@')[0]}
                           </span>
                           {selectedTeam.leader_id === member.id && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-500 border border-amber-500/20">
+                            <span className="px-1.5 py-0.5 rounded text-[9px] shrink-0 font-black uppercase tracking-wider bg-amber-500/20 text-amber-500 border border-amber-500/20">
                               Leader
                             </span>
                           )}
                         </div>
-                        <div className="text-slate-400 text-sm mt-0.5">{member.email}</div>
+                        <div className="text-slate-400 text-sm mt-0.5 truncate">{member.email}</div>
                       </div>
-                      <svg className="w-4 h-4 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 shrink-0 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
@@ -407,8 +407,8 @@ export default function AdminSubmissionsTab() {
                 }`}>
                   {(selectedUser.name?.[0] || selectedUser.email?.[0] || '?').toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="text-xl font-black text-white">{selectedUser.name || 'Unknown User'}</h3>
+                <div className="min-w-0 pr-2">
+                  <h3 className="text-xl font-black text-white break-words leading-tight">{selectedUser.name || 'Unknown User'}</h3>
                   <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mt-0.5">
                     {selectedUser.role === 'mentor' ? 'Mentor' : 'Participant'}
                   </p>
@@ -427,26 +427,26 @@ export default function AdminSubmissionsTab() {
             <div className="space-y-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
               <div>
                 <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Email Address</p>
-                <p className="text-sm font-medium text-slate-200">{selectedUser.email}</p>
+                <p className="text-sm font-medium text-slate-200 break-all">{selectedUser.email}</p>
               </div>
               
               {selectedUser.role !== 'mentor' && (
                 <>
                   <div className="h-px w-full bg-slate-700/50 my-2"></div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Student ID</p>
-                      <p className="text-sm font-medium text-slate-200">{selectedUser.student_id || 'N/A'}</p>
+                      <p className="text-sm font-medium text-slate-200 break-words">{selectedUser.student_id || 'N/A'}</p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Batch / Session</p>
-                      <p className="text-sm font-medium text-slate-200">{selectedUser.batch_session || 'N/A'}</p>
+                      <p className="text-sm font-medium text-slate-200 break-words">{selectedUser.batch_session || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="h-px w-full bg-slate-700/50 my-2"></div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Phone Number</p>
-                    <p className="text-sm font-medium text-slate-200">{selectedUser.phone_number || 'N/A'}</p>
+                    <p className="text-sm font-medium text-slate-200 break-words">{selectedUser.phone_number || 'N/A'}</p>
                   </div>
                 </>
               )}

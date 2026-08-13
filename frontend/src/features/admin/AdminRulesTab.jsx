@@ -19,7 +19,7 @@ const quillModules = {
 const quillFormats = [
   'header',
   'bold', 'italic', 'underline', 'strike',
-  'list', 'bullet', 'indent',
+  'list', 'indent',
   'link', 'code-block', 'blockquote',
   'color', 'background'
 ];

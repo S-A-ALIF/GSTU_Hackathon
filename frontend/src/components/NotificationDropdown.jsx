@@ -77,6 +77,7 @@ export default function NotificationDropdown() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [selectedNotificationModal, setSelectedNotificationModal] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -156,8 +157,11 @@ export default function NotificationDropdown() {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (isMarkingAll) return;
     const token = localStorage.getItem('token');
     if (!token || !currentUser) return;
+    
+    setIsMarkingAll(true);
     try {
       const res = await fetch(`${API_URL}/api/v1/notifications/read-all?email=${encodeURIComponent(currentUser.email)}`, {
         method: 'PATCH',
@@ -175,6 +179,8 @@ export default function NotificationDropdown() {
       }
     } catch (err) {
       console.error("Error marking all as read:", err);
+    } finally {
+      setIsMarkingAll(false);
     }
   };
 
@@ -406,9 +412,20 @@ export default function NotificationDropdown() {
           <div className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
             <button
               onClick={handleMarkAllAsRead}
-              className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
+              disabled={isMarkingAll}
+              className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Mark all as read
+              {isMarkingAll ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Marking...
+                </>
+              ) : (
+                'Mark all as read'
+              )}
             </button>
             <button 
               onClick={() => {

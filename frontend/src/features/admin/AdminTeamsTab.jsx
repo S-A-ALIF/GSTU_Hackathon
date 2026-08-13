@@ -93,6 +93,16 @@ export default function AdminTeamsTab({ activeTab }) {
     }
   }, [teams, activeTab]);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.dropdown-menu-container') && openMenuId) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
+
   const toggleExpand = (teamId) => {
     setExpandedTeams((prev) => ({
       ...prev,
@@ -501,7 +511,7 @@ export default function AdminTeamsTab({ activeTab }) {
                     </button>
 
                     {/* Three Dot Menu Button */}
-                    <div className="relative">
+                    <div className="relative dropdown-menu-container">
                       <button
                         onClick={() => setOpenMenuId(isMenuOpen ? null : teamMenuKey)}
                         className="w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-lg"
@@ -586,37 +596,38 @@ export default function AdminTeamsTab({ activeTab }) {
                         return (
                           <div
                             key={member.id}
-                            className={`p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-4 ${isMemberMenuOpen ? 'relative z-30' : 'relative z-0'}`}
+                            className={`p-3 bg-white rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 sm:gap-4 ${isMemberMenuOpen ? 'relative z-30' : 'relative z-0'}`}
                           >
                             <div
-                              className="flex items-center gap-3 cursor-pointer flex-1"
+                              className="flex items-center gap-3 cursor-pointer flex-1 min-w-0 order-1"
                               onClick={() => {
                                 setDetailsModalData({ ...member, team_name: team.name });
                                 setDetailsModalType('member');
                               }}
                             >
-                              <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
+                              <span className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
                                 👤
                               </span>
-                              <div>
-                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                                  {member.name || 'Unnamed Member'}
+                              <div className="min-w-0 flex-1">
+                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 truncate">
+                                  <span className="truncate">{member.name || 'Unnamed Member'}</span>
                                   {team.leader_id === member.id && (
-                                    <span title="Team Leader" className="text-amber-500">👑</span>
+                                    <span title="Team Leader" className="text-amber-500 shrink-0">👑</span>
                                   )}
                                 </div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-slate-500 truncate">
                                   {member.email} {member.student_id ? `• ID: ${member.student_id}` : ''}
                                 </div>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                              <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold uppercase">
+                            <div className="w-full sm:w-auto order-3 sm:order-2 flex justify-start sm:justify-end pl-11 sm:pl-0 mt-0 sm:mt-0">
+                              <span className="px-2 sm:px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold uppercase shrink-0">
                                 {member.role || 'Member'}
                               </span>
+                            </div>
 
-                              <div className="relative">
+                            <div className="relative dropdown-menu-container order-2 sm:order-3 shrink-0">
                                 <button
                                   onClick={() =>
                                     setOpenMenuId(isMemberMenuOpen ? null : memberMenuKey)
@@ -650,7 +661,6 @@ export default function AdminTeamsTab({ activeTab }) {
                                   </div>
                                 )}
                               </div>
-                            </div>
                           </div>
                         );
                       })

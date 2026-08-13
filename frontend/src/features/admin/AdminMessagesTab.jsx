@@ -40,6 +40,25 @@ const clampNotificationMessage = (msg) => {
   return cleaned;
 };
 
+const quillModules = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+    ['link', 'code-block', 'blockquote'],
+    [{ 'color': [] }, { 'background': [] }],
+    ['clean']
+  ],
+};
+
+const quillFormats = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'list', 'indent',
+  'link', 'code-block', 'blockquote',
+  'color', 'background'
+];
+
 export default function AdminMessagesTab() {
   const [targetType, setTargetType] = useState('all'); // 'all', 'team_leaders', 'mentors', 'teams', 'selected'
   const [title, setTitle] = useState('');
@@ -83,6 +102,36 @@ export default function AdminMessagesTab() {
   useEffect(() => {
     if (viewMode === 'history') {
       loadHistory();
+    } else if (viewMode === 'compose') {
+      const timer = setTimeout(() => {
+        const tooltips = {
+          '.ql-header': 'Heading Level / Text Style',
+          '.ql-bold': 'Bold (Ctrl+B)',
+          '.ql-italic': 'Italic (Ctrl+I)',
+          '.ql-underline': 'Underline (Ctrl+U)',
+          '.ql-strike': 'Strikethrough',
+          '.ql-list[value="ordered"]': 'Numbered List',
+          '.ql-list[value="bullet"]': 'Bullet List',
+          '.ql-indent[value="-1"]': 'Decrease Indent',
+          '.ql-indent[value="+1"]': 'Increase Indent',
+          '.ql-link': 'Insert Link (Ctrl+K)',
+          '.ql-code-block': 'Code Block',
+          '.ql-blockquote': 'Blockquote',
+          '.ql-color': 'Text Color',
+          '.ql-background': 'Highlight / Background Color',
+          '.ql-clean': 'Clear All Formatting',
+        };
+
+        Object.entries(tooltips).forEach(([selector, title]) => {
+          const elements = document.querySelectorAll(`.quill-editor-container ${selector}`);
+          elements.forEach(el => el.setAttribute('title', title));
+        });
+
+        const headerLabels = document.querySelectorAll('.quill-editor-container .ql-header .ql-picker-label');
+        headerLabels.forEach(el => el.setAttribute('title', 'Heading Level / Text Style'));
+      }, 150);
+
+      return () => clearTimeout(timer);
     }
   }, [viewMode]);
 
@@ -370,9 +419,9 @@ export default function AdminMessagesTab() {
             <div className="space-y-4">
               {history.map((msg) => (
                 <div key={msg.id} className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 transition-colors">
-                  <div className="flex justify-between items-start gap-4 cursor-pointer" onClick={() => setSelectedHistoryModal(msg)}>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4 cursor-pointer" onClick={() => setSelectedHistoryModal(msg)}>
+                    <div className="w-full sm:flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${msg.severity === 'urgent' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300' : msg.severity === 'warning' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'}`}>
                           {msg.severity}
                         </span>
@@ -384,7 +433,7 @@ export default function AdminMessagesTab() {
                         {clampNotificationMessage(msg.message)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -721,13 +770,15 @@ export default function AdminMessagesTab() {
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
                 Message Content <span className="text-red-500">*</span>
               </label>
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden [&_.ql-editor]:!text-slate-900 dark:[&_.ql-editor]:!text-white dark:[&_.ql-editor_*]:!text-white [&_.ql-editor::before]:!text-slate-400 dark:[&_.ql-editor::before]:!text-slate-500 [&_.ql-toolbar]:border-b-slate-200 dark:[&_.ql-toolbar]:border-b-slate-700 dark:[&_.ql-stroke]:!stroke-slate-300 dark:[&_.ql-fill]:!fill-slate-300 dark:[&_.ql-picker]:!text-slate-300">
+              <div className="quill-editor-container bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden [&_.ql-editor]:!text-slate-900 dark:[&_.ql-editor]:!text-white dark:[&_.ql-editor_*]:!text-white [&_.ql-editor::before]:!text-slate-400 dark:[&_.ql-editor::before]:!text-slate-500 [&_.ql-toolbar]:border-b-slate-200 dark:[&_.ql-toolbar]:border-b-slate-700 dark:[&_.ql-stroke]:!stroke-slate-300 dark:[&_.ql-fill]:!fill-slate-300 dark:[&_.ql-picker]:!text-slate-300">
                 <ReactQuill
                   theme="snow"
                   value={message}
                   onChange={setMessage}
+                  modules={quillModules}
+                  formats={quillFormats}
                   placeholder="Write your announcement or notification text here..."
-                  className="text-sm font-medium"
+                  className="text-sm font-medium min-h-[150px]"
                 />
               </div>
               <div className="flex justify-between items-center mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -800,15 +851,24 @@ export default function AdminMessagesTab() {
 
       {/* Full Message Reader Popup Modal */}
       {selectedHistoryModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className={`bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transform transition-all duration-300 ${isFullScreen ? 'w-full h-full rounded-none m-0' : 'max-w-lg w-full max-h-[80vh] rounded-3xl scale-100'}`}>
-            <div className="p-6 pb-4 flex items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-              <div className="flex items-center gap-3">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => {
+            setSelectedHistoryModal(null);
+            setIsFullScreen(false);
+          }}
+        >
+          <div 
+            className={`bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transform transition-all duration-300 ${isFullScreen ? 'w-full h-full rounded-none m-0' : 'max-w-lg w-full max-h-[80vh] rounded-3xl scale-100'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6 pb-4 flex items-center justify-between gap-2 sm:gap-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0">
                   📢
                 </div>
-                <div>
-                  <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">
+                <div className="min-w-0">
+                  <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight truncate">
                     {selectedHistoryModal.title || 'Broadcast Details'}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -816,7 +876,7 @@ export default function AdminMessagesTab() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsFullScreen(!isFullScreen)}

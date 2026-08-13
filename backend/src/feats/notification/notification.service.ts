@@ -62,7 +62,7 @@ export const notificationService = {
                  WHERE id = $1 
                    AND NOT (
                        (
-                           type IN ('team_invitation', 'join_request', 'mentor_invitation')
+                           COALESCE(type, '') IN ('team_invitation', 'join_request', 'mentor_invitation')
                            OR message LIKE '%You received a team invitation%'
                            OR message LIKE '%requested to join your team%'
                            OR message LIKE '%invited to mentor the team%'
@@ -106,7 +106,7 @@ export const notificationService = {
                  WHERE recipient_email = $1 
                    AND NOT (
                        (
-                           type IN ('team_invitation', 'join_request', 'mentor_invitation')
+                           COALESCE(type, '') IN ('team_invitation', 'join_request', 'mentor_invitation')
                            OR message LIKE '%You received a team invitation%'
                            OR message LIKE '%requested to join your team%'
                            OR message LIKE '%invited to mentor the team%'

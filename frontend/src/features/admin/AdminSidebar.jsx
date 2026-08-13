@@ -3,6 +3,7 @@ import { API_URL } from '../../config';
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [unresolvedCount, setUnresolvedCount] = useState(0);
 
   useEffect(() => {
@@ -140,7 +141,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
       </button>
 
       <div>
-        <nav className="grid grid-cols-4 gap-1 md:flex md:flex-col md:space-y-1">
+        <div className={`md:block transition-all duration-300 overflow-hidden ${isMobileExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 md:max-h-none md:opacity-100'}`}>
+          <nav className="grid grid-cols-4 gap-1 md:flex md:flex-col md:space-y-1 pb-2 md:pb-0">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -177,7 +179,28 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
               </button>
             );
           })}
-        </nav>
+          </nav>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Toggle Button */}
+      <div className="md:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+          className="w-12 h-6 bg-slate-900 border-b border-l border-r border-slate-700 rounded-b-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 shadow-md transition-colors"
+          title={isMobileExpanded ? 'Retract Menu' : 'Expand Menu'}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className={`w-4 h-4 transition-transform duration-300 ${isMobileExpanded ? 'rotate-180' : ''}`}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
       </div>
     </aside>
   );
