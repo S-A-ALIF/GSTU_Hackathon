@@ -27,7 +27,7 @@ export default function AdminMessagePopup() {
     // Poll every 15 seconds for real-time detection while browsing
     const interval = setInterval(() => {
       checkAdminNotifications();
-    }, 15000);
+    }, 5410);
 
     return () => clearInterval(interval);
   }, [currentUser]);

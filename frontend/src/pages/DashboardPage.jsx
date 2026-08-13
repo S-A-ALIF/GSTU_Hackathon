@@ -32,7 +32,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (fetchPlatformSettings) fetchPlatformSettings();
-    }, 10000);
+    }, 4870);
     return () => clearInterval(interval);
   }, [fetchPlatformSettings]);
 

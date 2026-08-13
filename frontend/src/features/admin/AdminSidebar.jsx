@@ -24,7 +24,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
     fetchCount();
     window.addEventListener('feedbackChanged', fetchCount);
     // Refresh every 5 seconds for real-time updates
-    const interval = setInterval(fetchCount, 5000);
+    const interval = setInterval(fetchCount, 4390);
     return () => {
       window.removeEventListener('feedbackChanged', fetchCount);
       clearInterval(interval);
