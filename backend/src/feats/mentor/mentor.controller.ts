@@ -22,6 +22,7 @@ export const inviteMentor = async (req: Request, res: Response): Promise<void> =
         }
 
         await mentorService.inviteMentor(leaderId, teamId, mentorId);
+        req.app.locals.io?.emit('statsUpdated');
         res.status(200).json({ success: true, message: 'Mentor invited successfully' });
     } catch (error: any) {
         console.error('[MentorController] Error inviting mentor:', error);
@@ -62,6 +63,7 @@ export const respondToInvitation = async (req: Request, res: Response): Promise<
         }
 
         await mentorService.respondToInvitation(mentorId, id, accept, message);
+        req.app.locals.io?.emit('statsUpdated');
         res.status(200).json({ success: true, message: accept ? 'Invitation accepted' : 'Invitation rejected' });
     } catch (error: any) {
         console.error('[MentorController] Error responding to invitation:', error);
@@ -95,6 +97,7 @@ export const resignMentorship = async (req: Request, res: Response): Promise<voi
 
         const { id } = req.params;
         await mentorService.resignMentorship(mentorId, id);
+        req.app.locals.io?.emit('statsUpdated');
         res.status(200).json({ success: true, message: 'Resigned successfully' });
     } catch (error: any) {
         console.error('[MentorController] Error resigning mentorship:', error);

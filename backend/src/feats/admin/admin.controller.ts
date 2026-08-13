@@ -158,6 +158,20 @@ export const updateTeam = async (req: Request, res: Response) => {
 
             await client.query('COMMIT');
 
+            if (is_banned !== undefined) {
+                const members = await pool.query('SELECT user_id FROM team_members WHERE team_id = $1', [id]);
+                const userIds = members.rows.map(m => m.user_id);
+                if (userIds.length > 0) {
+                    req.app.locals.io?.emit('usersBanUpdated', {
+                        userIds,
+                        isBanned: is_banned,
+                        banReason: is_banned ? (ban_reason || 'Your team has been banned.') : null
+                    });
+                }
+            }
+
+            req.app.locals.io?.emit('statsUpdated');
+
             res.status(200).json({
                 status: 'success',
                 success: true,
@@ -204,6 +218,8 @@ export const deleteAdminMessage = async (req: Request, res: Response) => {
         
         await client.query('COMMIT');
         
+        req.app.locals.io?.emit('newAdminMessage');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -234,6 +250,8 @@ export const deleteTeam = async (req: Request, res: Response) => {
         if (result.rows.length === 0) {
             throw new CustomError('Team not found', 404);
         }
+
+        req.app.locals.io?.emit('statsUpdated');
 
         res.status(200).json({
             status: 'success',
@@ -352,6 +370,16 @@ export const updateMember = async (req: Request, res: Response) => {
 
         await client.query('COMMIT');
 
+        if (is_banned !== undefined) {
+            req.app.locals.io?.emit('usersBanUpdated', {
+                userIds: [id],
+                isBanned: is_banned,
+                banReason: is_banned ? (ban_reason || 'Your account has been banned.') : null
+            });
+        }
+
+        req.app.locals.io?.emit('statsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -383,6 +411,8 @@ export const deleteMember = async (req: Request, res: Response) => {
         if (result.rows.length === 0) {
             throw new CustomError('User not found', 404);
         }
+
+        req.app.locals.io?.emit('statsUpdated');
 
         res.status(200).json({
             status: 'success',
@@ -441,6 +471,8 @@ export const toggleRegistration = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('reg_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
         );
 
+        req.app.locals.io?.emit('settingsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -472,6 +504,8 @@ export const toggleWorkspace = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('hack_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
         );
 
+        req.app.locals.io?.emit('settingsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -502,6 +536,8 @@ export const toggleProblems = async (req: Request, res: Response) => {
         await pool.query(
             "INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'true') ON CONFLICT (key) DO UPDATE SET value = 'true'"
         );
+
+        req.app.locals.io?.emit('settingsUpdated');
 
         res.status(200).json({
             status: 'success',
@@ -551,6 +587,8 @@ export const updateTeamLimits = async (req: Request, res: Response) => {
             settings[r.key] = r.value;
         });
 
+        req.app.locals.io?.emit('settingsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -583,6 +621,8 @@ export const updateRegistrationTimeline = async (req: Request, res: Response) =>
         await pool.query(
             "INSERT INTO platform_settings (key, value) VALUES ('reg_override', 'false') ON CONFLICT (key) DO UPDATE SET value = 'false'"
         );
+
+        req.app.locals.io?.emit('settingsUpdated');
 
         res.status(200).json({
             status: 'success',
@@ -620,6 +660,8 @@ export const updateHackathonTimeline = async (req: Request, res: Response) => {
             "INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'false') ON CONFLICT (key) DO UPDATE SET value = 'false'"
         );
 
+        req.app.locals.io?.emit('settingsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -646,6 +688,8 @@ export const deleteMultipleMembers = async (req: Request, res: Response) => {
     }
         const result = await pool.query("DELETE FROM users WHERE id = ANY($1) AND role != 'admin' RETURNING id", [ids]);
         
+        req.app.locals.io?.emit('statsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -676,6 +720,8 @@ export const deleteMultipleTeams = async (req: Request, res: Response) => {
     }
         const result = await pool.query('DELETE FROM teams WHERE id = ANY($1) RETURNING id', [ids]);
         
+        req.app.locals.io?.emit('statsUpdated');
+
         res.status(200).json({
             status: 'success',
             success: true,
@@ -765,6 +811,8 @@ export const sendAdminMessage = async (req: Request, res: Response) => {
         );
 
         await Promise.all(insertPromises);
+
+        req.app.locals.io?.emit('newAdminMessage');
 
         res.status(200).json({
             status: 'success',

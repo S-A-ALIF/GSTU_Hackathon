@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../config';
 import { toast } from 'sonner';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth, socket } from '../../contexts/AuthContext';
 import { adminCache } from './adminCache';
 
 export default function AdminControlTab() {
@@ -42,10 +42,22 @@ export default function AdminControlTab() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
+    fetchSettings();
+
+    const handleSettingsUpdated = () => {
+      fetchSettings(true); // force fresh fetch
+    };
+
+    socket.on('settingsUpdated', handleSettingsUpdated);
+
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
-    return () => clearInterval(timer);
+    
+    return () => {
+      clearInterval(timer);
+      socket.off('settingsUpdated', handleSettingsUpdated);
+    };
   }, []);
 
   const fetchSettings = async (force = false) => {

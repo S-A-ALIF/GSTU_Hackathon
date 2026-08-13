@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../config';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, socket } from '../contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 
@@ -24,12 +24,12 @@ export default function AdminMessagePopup() {
     // Check immediately on mount/login
     checkAdminNotifications();
 
-    // Poll every 15 seconds for real-time detection while browsing
-    const interval = setInterval(() => {
-      checkAdminNotifications();
-    }, 5410);
+    // Listen for new admin messages
+    socket.on('newAdminMessage', checkAdminNotifications);
 
-    return () => clearInterval(interval);
+    return () => {
+      socket.off('newAdminMessage', checkAdminNotifications);
+    };
   }, [currentUser]);
 
   const checkAdminNotifications = async () => {

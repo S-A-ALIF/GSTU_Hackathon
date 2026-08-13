@@ -15,6 +15,8 @@ export const submitFeedback = async (req: Request, res: Response): Promise<void>
             'INSERT INTO feedback (user_id, subject, type, description) VALUES ($1, $2, $3, $4)',
             [userId, subject, type, description]
         );
+        
+        req.app.locals.io?.emit('statsUpdated');
 
         res.status(201).json({ success: true, status: 'success', message: 'Feedback submitted successfully' });
     } catch (error) {
@@ -59,10 +61,12 @@ export const resolveFeedback = async (req: Request, res: Response): Promise<void
             [id]
         );
 
-        if (result.rows.length === 0) {
+        if (result.rowCount === 0) {
             res.status(404).json({ success: false, status: 'error', message: 'Feedback not found' });
             return;
         }
+
+        req.app.locals.io?.emit('statsUpdated');
 
         const resolvedFeedback = result.rows[0];
 

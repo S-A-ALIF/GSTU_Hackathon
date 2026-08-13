@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import FormattedContent from '../../components/FormattedContent';
+import { useAuth } from '../../contexts/AuthContext';
 
 const quillModules = {
   toolbar: [
@@ -27,6 +28,7 @@ const quillFormats = [
 ];
 
 export default function AdminProblemsTab() {
+  const { socket } = useAuth();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -47,6 +49,20 @@ export default function AdminProblemsTab() {
   useEffect(() => {
     fetchProblems();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleSettingsUpdated = () => {
+      fetchProblems();
+    };
+    
+    socket.on('settingsUpdated', handleSettingsUpdated);
+    
+    return () => {
+      socket.off('settingsUpdated', handleSettingsUpdated);
+    };
+  }, [socket]);
 
   useEffect(() => {
     const hasProblem = problems.length > 0;

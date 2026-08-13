@@ -151,7 +151,7 @@ export default function AdminPage() {
           setActiveTab={setActiveTab}
         />
 
-        <main className="flex-1 p-6 sm:p-10 overflow-y-auto w-full h-full">
+        <main className="flex-1 p-6 sm:p-10 overflow-y-auto overflow-x-hidden h-full">
           <div className="max-w-7xl mx-auto">
             {visitedTabs.dashboard && (
               <div className={activeTab === 'dashboard' ? 'block' : 'hidden'}>

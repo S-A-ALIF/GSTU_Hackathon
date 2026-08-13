@@ -4,6 +4,7 @@ import { API_URL } from '../../config';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import FormattedContent from '../../components/FormattedContent';
+import { useAuth } from '../../contexts/AuthContext';
 
 const quillModules = {
   toolbar: [
@@ -25,6 +26,7 @@ const quillFormats = [
 ];
 
 export default function AdminRulesTab() {
+  const { socket } = useAuth();
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -41,6 +43,20 @@ export default function AdminRulesTab() {
   useEffect(() => {
     fetchRules();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleSettingsUpdated = () => {
+      fetchRules();
+    };
+    
+    socket.on('settingsUpdated', handleSettingsUpdated);
+    
+    return () => {
+      socket.off('settingsUpdated', handleSettingsUpdated);
+    };
+  }, [socket]);
 
   useEffect(() => {
     const hasRule = rules.length > 0;

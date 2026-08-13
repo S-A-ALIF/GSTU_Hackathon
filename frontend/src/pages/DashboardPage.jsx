@@ -28,13 +28,6 @@ export default function DashboardPage() {
     localStorage.setItem('hackathon_active_tab', activeTab);
   }, [activeTab]);
 
-  // Poll settings every 10 seconds to respond to live admin closures
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (fetchPlatformSettings) fetchPlatformSettings();
-    }, 4870);
-    return () => clearInterval(interval);
-  }, [fetchPlatformSettings]);
 
   // Force redirect to team tab if the current active tab gets closed by admin or user is banned
   useEffect(() => {

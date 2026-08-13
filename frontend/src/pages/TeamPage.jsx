@@ -1,6 +1,6 @@
 import { API_URL } from '../config';
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, socket } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import CreateTeamModal from '../features/team/CreateTeamModal';
 import JoinTeamModal from '../features/team/JoinTeamModal';
@@ -217,6 +217,18 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
 
   useEffect(() => {
     fetchTeam();
+
+    const handleStatsUpdated = () => {
+      userCache.invalidate(); // Force fresh fetch
+      fetchTeam(true);
+      fetchActiveInvitations(true);
+    };
+
+    socket.on('statsUpdated', handleStatsUpdated);
+
+    return () => {
+      socket.off('statsUpdated', handleStatsUpdated);
+    };
   }, []);
 
   // Fetch invitations once when team loads and user is leader — cached in parent

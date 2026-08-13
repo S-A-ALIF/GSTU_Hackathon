@@ -6,8 +6,10 @@ import EditModal from './EditModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import { adminCache } from './adminCache';
 import BanModal from './BanModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminMembersTab({ setParentActiveTab }) {
+  const { socket } = useAuth();
   const [members, setMembers] = useState(adminCache.members || []);
   const [loading, setLoading] = useState(!adminCache.members);
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,6 +72,20 @@ export default function AdminMembersTab({ setParentActiveTab }) {
   useEffect(() => {
     fetchMembers(false);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleStatsUpdated = () => {
+      fetchMembers(true);
+    };
+    
+    socket.on('statsUpdated', handleStatsUpdated);
+    
+    return () => {
+      socket.off('statsUpdated', handleStatsUpdated);
+    };
+  }, [socket]);
 
   const executeBanToggleMember = async (reason) => {
     if (!banModalConfig.target) return;

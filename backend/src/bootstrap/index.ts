@@ -68,7 +68,8 @@ app.get('/health', async (req: Request, res: Response) => {
 app.use('/api/v1', rootRouter);
 app.use(errorHandler);
 
-// Start the Server
+import { Server as SocketIOServer } from 'socket.io';
+
 const PORT = envConfig.port || 5000;
 
 const server = app.listen(PORT, () => {
@@ -141,6 +142,29 @@ const server = app.listen(PORT, () => {
         INSERT INTO platform_settings (key, value) VALUES ('prob_override', 'false') ON CONFLICT (key) DO NOTHING;
     `).catch(err => {
         console.error('Migration error during startup:', err);
+    });
+});
+
+const io = new SocketIOServer(server, {
+    cors: {
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+                callback(null, true);
+            } else {
+                callback(new Error(`CORS: Origin ${origin} not allowed`), false);
+            }
+        },
+        credentials: true
+    }
+});
+
+app.locals.io = io;
+
+io.on('connection', (socket) => {
+    console.log('⚡ Client connected to WebSocket');
+    socket.on('disconnect', () => {
+        console.log('⚡ Client disconnected from WebSocket');
     });
 });
 

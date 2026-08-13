@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../config';
+import { socket } from '../../contexts/AuthContext';
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -20,14 +21,15 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
         console.error(e);
       }
     };
-    
     fetchCount();
+    
+    // Fallback event and socket listener
     window.addEventListener('feedbackChanged', fetchCount);
-    // Refresh every 5 seconds for real-time updates
-    const interval = setInterval(fetchCount, 4390);
+    socket.on('statsUpdated', fetchCount);
+    
     return () => {
       window.removeEventListener('feedbackChanged', fetchCount);
-      clearInterval(interval);
+      socket.off('statsUpdated', fetchCount);
     };
   }, []);
 

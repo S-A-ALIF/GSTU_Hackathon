@@ -1,6 +1,6 @@
 import { API_URL } from '../config';
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, socket } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import JoinTeamModal from '../features/team/JoinTeamModal';
 import { createPortal } from 'react-dom';
@@ -127,7 +127,16 @@ export default function NotificationDropdown() {
 
   useEffect(() => {
     fetchNotifications(true);
-    // In a real app, you might want to set up an interval to poll, or use WebSockets.
+    
+    const handleNewMessage = () => {
+      fetchNotifications(false);
+    };
+
+    socket.on('newAdminMessage', handleNewMessage);
+    
+    return () => {
+      socket.off('newAdminMessage', handleNewMessage);
+    };
   }, [currentUser]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;

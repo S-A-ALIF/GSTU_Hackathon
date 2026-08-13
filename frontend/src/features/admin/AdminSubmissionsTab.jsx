@@ -14,8 +14,7 @@ export default function AdminSubmissionsTab() {
   // Modals state
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  const { currentUser } = useAuth();
+  const { currentUser, socket } = useAuth();
 
   const fetchSubmissions = async () => {
     try {
@@ -43,6 +42,20 @@ export default function AdminSubmissionsTab() {
   useEffect(() => {
     fetchSubmissions();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleStatsUpdated = () => {
+      fetchSubmissions();
+    };
+    
+    socket.on('statsUpdated', handleStatsUpdated);
+    
+    return () => {
+      socket.off('statsUpdated', handleStatsUpdated);
+    };
+  }, [socket]);
 
   const confirmRejectSubmission = async () => {
     try {

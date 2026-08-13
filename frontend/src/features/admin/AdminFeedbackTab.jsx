@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../config';
 import { toast } from 'sonner';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminFeedbackTab() {
+  const { socket } = useAuth();
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, open, resolved
@@ -11,6 +13,20 @@ export default function AdminFeedbackTab() {
   useEffect(() => {
     fetchFeedbacks();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleStatsUpdated = () => {
+      fetchFeedbacks();
+    };
+    
+    socket.on('statsUpdated', handleStatsUpdated);
+    
+    return () => {
+      socket.off('statsUpdated', handleStatsUpdated);
+    };
+  }, [socket]);
 
   const fetchFeedbacks = async () => {
     try {

@@ -9,6 +9,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         
         const user = await authService.registerUser(sanitizedData);
         
+        req.app.locals.io?.emit('statsUpdated');
+
         res.status(201).json({ 
             status: 'success', 
             message: 'User registered successfully', 

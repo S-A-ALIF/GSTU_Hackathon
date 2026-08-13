@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../config';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, socket } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import NotificationDropdown from '../components/NotificationDropdown';
 import FeedbackModal from '../components/FeedbackModal';
@@ -62,6 +62,12 @@ export default function MentorDashboardPage() {
 
   useEffect(() => {
     fetchData();
+
+    socket.on('statsUpdated', fetchData);
+
+    return () => {
+      socket.off('statsUpdated', fetchData);
+    };
   }, []);
 
   const fetchData = async () => {

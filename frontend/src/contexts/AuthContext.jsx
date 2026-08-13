@@ -3,6 +3,11 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { adminCache } from '../features/admin/adminCache';
 import { userCache } from '../utils/userCache';
+import { io } from 'socket.io-client';
+
+export const socket = io(API_URL, {
+  withCredentials: true
+});
 
 const AuthContext = createContext();
 
@@ -32,7 +37,7 @@ export function AuthProvider({ children }) {
 
   const fetchPlatformSettings = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/settings`);
+      const res = await fetch(`${API_URL}/api/v1/settings?t=${Date.now()}`);
       const data = await res.json();
       if (res.ok && data.success && data.data) {
         const isRegOpen = data.data.registration_open !== 'false' && data.data.registration_open !== false;
@@ -119,7 +124,41 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     fetchPlatformSettings();
+
+    // Listen for realtime settings updates
+    socket.on('settingsUpdated', fetchPlatformSettings);
+    
+    return () => {
+      socket.off('settingsUpdated', fetchPlatformSettings);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const handleBanUpdated = (data) => {
+      console.log('Received usersBanUpdated:', data, 'Current user ID:', currentUser.id);
+      if (data.userIds && data.userIds.includes(currentUser.id)) {
+        setUserProfile(prev => prev ? {
+          ...prev,
+          isBanned: data.isBanned,
+          banReason: data.banReason
+        } : null);
+        
+        if (data.isBanned) {
+           toast.error(data.banReason || "Your account has been banned.");
+        } else {
+           toast.success("Your account has been unbanned. Welcome back!");
+        }
+      }
+    };
+
+    socket.on('usersBanUpdated', handleBanUpdated);
+    
+    return () => {
+      socket.off('usersBanUpdated', handleBanUpdated);
+    };
+  }, [currentUser?.id]);
 
   useEffect(() => {
     // Check for existing token and verify with server on load

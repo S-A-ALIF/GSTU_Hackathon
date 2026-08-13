@@ -6,8 +6,10 @@ import BanModal from './BanModal';
 import EditModal from './EditModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import { adminCache } from './adminCache';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function AdminTeamsTab({ activeTab }) {
+  const { socket } = useAuth();
   const [teams, setTeams] = useState(adminCache.teams || []);
   const [loading, setLoading] = useState(!adminCache.teams);
   const [expandedTeams, setExpandedTeams] = useState({});
@@ -74,6 +76,20 @@ export default function AdminTeamsTab({ activeTab }) {
   useEffect(() => {
     fetchTeams(false);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleStatsUpdated = () => {
+      fetchTeams(true);
+    };
+    
+    socket.on('statsUpdated', handleStatsUpdated);
+    
+    return () => {
+      socket.off('statsUpdated', handleStatsUpdated);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (teams.length > 0 && activeTab === 'teams') {
@@ -331,7 +347,7 @@ export default function AdminTeamsTab({ activeTab }) {
   return (
     <div className="space-y-6">
       {/* Top action bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex-wrap">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">Teams Management</h2>
           <p className="text-slate-600 text-sm mt-1">
@@ -339,7 +355,7 @@ export default function AdminTeamsTab({ activeTab }) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {isSelectionMode ? (
             <>
               <button
@@ -456,7 +472,7 @@ export default function AdminTeamsTab({ activeTab }) {
                 className={`bg-white rounded-2xl border border-slate-200 shadow-sm transition-all duration-500 ${hasOpenMenu ? 'relative z-30' : 'relative z-10'}`}
               >
                 {/* Team Header Row */}
-                <div className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors ${isExpanded ? 'rounded-t-2xl' : 'rounded-2xl'}`}>
+                <div className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors flex-wrap ${isExpanded ? 'rounded-t-2xl' : 'rounded-2xl'}`}>
                   <div className="flex items-center gap-4 flex-1 cursor-pointer" onClick={() => !isSelectionMode && toggleExpand(team.id)}>
                     {isSelectionMode ? (
                       <div className="shrink-0 pl-1 pr-2 flex items-center justify-center">
@@ -495,7 +511,7 @@ export default function AdminTeamsTab({ activeTab }) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto shrink-0">
                     <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full font-bold text-xs shrink-0">
                       {team.members?.length || 0} Members
                     </span>

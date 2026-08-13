@@ -15,6 +15,8 @@ export const createTeam = async (req: Request, res: Response): Promise<void> => 
 
         const teamId = await teamService.createTeam(userId, name);
 
+        req.app.locals.io?.emit('statsUpdated');
+
         res.status(201).json({ success: true, status: 'success', message: 'Team created successfully!', data: { teamId } });
     } catch (error: any) {
         console.error('[TeamController] Error creating team:', error);
@@ -155,6 +157,8 @@ export const disbandTeam = async (req: Request, res: Response): Promise<void> =>
     try {
         const leaderId = (req as any).user.id;
         await teamService.disbandTeam(leaderId);
+
+        req.app.locals.io?.emit('statsUpdated');
 
         res.status(200).json({ success: true, status: 'success', message: 'Team disbanded successfully' });
     } catch (error: any) {
