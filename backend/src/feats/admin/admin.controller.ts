@@ -62,10 +62,16 @@ export const getAllTeams = async (req: Request, res: Response) => {
                 t.is_banned,
                 t.ban_reason,
                 t.mentor_id,
+                t.is_submitted,
+                t.submitted_at,
                 u.email as leader_email,
                 ui.name as leader_name,
+                ui.avatar_url as leader_avatar_url,
                 m.email as mentor_email,
                 mi.name as mentor_name,
+                mi.avatar_url as mentor_avatar_url,
+                mi.student_id as mentor_student_id,
+                mi.batch_session as mentor_batch_session,
                 COALESCE(
                     (
                         SELECT json_agg(
@@ -74,6 +80,7 @@ export const getAllTeams = async (req: Request, res: Response) => {
                                 'email', m_user.email,
                                 'role', m_user.role,
                                 'name', COALESCE(m_info.name, ''),
+                                'avatar_url', m_info.avatar_url,
                                 'student_id', COALESCE(m_info.student_id, ''),
                                 'batch_session', COALESCE(m_info.batch_session, ''),
                                 'phone_number', COALESCE(m_info.phone_number, '')
@@ -282,6 +289,7 @@ export const getAllMembers = async (req: Request, res: Response) => {
                 u.created_at,
                 u.is_banned,
                 u.ban_reason,
+                ui.avatar_url,
                 COALESCE(ui.name, '') as name,
                 COALESCE(ui.student_id, '') as student_id,
                 COALESCE(ui.batch_session, '') as batch_session,

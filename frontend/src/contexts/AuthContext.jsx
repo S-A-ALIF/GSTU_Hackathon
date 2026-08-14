@@ -19,13 +19,13 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [rawRegistrationOpen, setRawRegistrationOpen] = useState(true);
+  const [rawRegistrationOpen, setRawRegistrationOpen] = useState(false);
   const [regOverride, setRegOverride] = useState(false);
   const [rawWorkspaceOpen, setRawWorkspaceOpen] = useState(false);
   const [hackOverride, setHackOverride] = useState(false);
   const [rawProblemsOpen, setRawProblemsOpen] = useState(false);
   const [probOverride, setProbOverride] = useState(false);
-  const [registrationOpen, setRegistrationOpen] = useState(true);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [problemsOpen, setProblemsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(true);
@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
   const [regEndTime, setRegEndTime] = useState('');
   const [hackStartTime, setHackStartTime] = useState('');
   const [hackEndTime, setHackEndTime] = useState('');
-  const [isSubmissionOpen, setIsSubmissionOpen] = useState(true);
+  const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
 
   const fetchPlatformSettings = async () => {
     try {
@@ -189,6 +189,7 @@ export function AuthProvider({ children }) {
               student_id: data.data.student_id || '',
               batch_session: data.data.batch_session || '',
               phone_number: data.data.phone_number || '',
+              avatar_url: data.data.avatar_url || '',
               isBanned: data.data.is_banned || false,
               banReason: data.data.ban_reason || ''
             });

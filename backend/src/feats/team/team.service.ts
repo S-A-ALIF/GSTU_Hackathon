@@ -29,7 +29,8 @@ export const teamService = {
                    COALESCE(ui.name, u.email) as name,
                    COALESCE(ui.student_id, 'N/A') as student_id,
                    COALESCE(ui.batch_session, 'N/A') as batch_session,
-                   COALESCE(ui.phone_number, 'N/A') as phone_number
+                   COALESCE(ui.phone_number, 'N/A') as phone_number,
+                   ui.avatar_url
             FROM team_members tm
             JOIN users u ON tm.user_id = u.id
             LEFT JOIN user_info ui ON u.id = ui.user_id
@@ -37,7 +38,7 @@ export const teamService = {
         `;
 
         const [teamRes, membersRes, settingsRes] = await Promise.all([
-            pool.query('SELECT t.id, t.name, t.team_code, t.leader_id, t.mentor_id, t.repo_url, t.live_url, t.video_url, COALESCE(t.is_submitted, false) as is_submitted, t.submitted_at, COALESCE(t.is_full, false) as is_full, t.created_at, COALESCE(ui.name, u.email) as mentor_name FROM teams t LEFT JOIN users u ON t.mentor_id = u.id LEFT JOIN user_info ui ON u.id = ui.user_id WHERE t.id = $1', [teamId]),
+            pool.query('SELECT t.id, t.name, t.team_code, t.leader_id, t.mentor_id, t.repo_url, t.live_url, t.video_url, COALESCE(t.is_submitted, false) as is_submitted, t.submitted_at, COALESCE(t.is_full, false) as is_full, t.created_at, COALESCE(ui.name, u.email) as mentor_name, ui.avatar_url as mentor_avatar_url FROM teams t LEFT JOIN users u ON t.mentor_id = u.id LEFT JOIN user_info ui ON u.id = ui.user_id WHERE t.id = $1', [teamId]),
             pool.query(membersQuery, [teamId]),
             pool.query("SELECT key, value FROM platform_settings WHERE key IN ('min_team_members', 'max_team_members')")
         ]);

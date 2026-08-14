@@ -91,7 +91,7 @@ export const loginUser = async (email: string, password: string) => {
     try {
         // 1. Fetch user by email with user_info in a single JOIN
         const query = `
-            SELECT u.*, ui.name, ui.student_id, ui.batch_session, ui.phone_number,
+            SELECT u.*, ui.name, ui.student_id, ui.batch_session, ui.phone_number, ui.avatar_url,
                    t.is_banned as team_is_banned, t.ban_reason as team_ban_reason
             FROM users u
             LEFT JOIN user_info ui ON u.id = ui.user_id
@@ -134,7 +134,8 @@ export const loginUser = async (email: string, password: string) => {
                     name: user.name || '',
                     student_id: user.student_id || '',
                     batch_session: user.batch_session || '',
-                    phone_number: user.phone_number || ''
+                    phone_number: user.phone_number || '',
+                    avatar_url: user.avatar_url || ''
                 }
             }
         };
@@ -150,7 +151,7 @@ export const getMe = async (userId: string, role?: string) => {
     try {
         const userQuery = `
             SELECT u.id, u.email, u.role, u.created_at, u.is_banned, u.ban_reason,
-                   ui.name, ui.student_id, ui.batch_session, ui.phone_number,
+                   ui.name, ui.student_id, ui.batch_session, ui.phone_number, ui.avatar_url,
                    t.id as team_id, t.name as team_name, t.leader_id,
                    t.is_banned as team_is_banned, t.ban_reason as team_ban_reason
             FROM users u

@@ -7,6 +7,7 @@ import EditModal from './EditModal';
 import ConfirmModal from '../../components/ConfirmModal';
 import { adminCache } from './adminCache';
 import { useAuth } from '../../contexts/AuthContext';
+import ImageModal from '../../components/ImageModal';
 
 export default function AdminTeamsTab({ activeTab }) {
   const { socket } = useAuth();
@@ -29,6 +30,8 @@ export default function AdminTeamsTab({ activeTab }) {
   const [editModalData, setEditModalData] = useState(null);
   const [banModalConfig, setBanModalConfig] = useState({ isOpen: false, target: null, isBanning: false });
   const [editModalType, setEditModalType] = useState('team');
+  const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
 
   // Menu open state
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -326,6 +329,10 @@ export default function AdminTeamsTab({ activeTab }) {
        if (!t.mentor_id || (t.members?.length || 0) < getMinTeamSize()) return false;
     } else if (teamFilter === 'invalid') {
        if (t.mentor_id && (t.members?.length || 0) >= getMinTeamSize()) return false;
+    } else if (teamFilter === 'submitted') {
+       if (!t.is_submitted) return false;
+    } else if (teamFilter === 'not_submitted') {
+       if (t.is_submitted) return false;
     }
     
     return true;
@@ -413,7 +420,7 @@ export default function AdminTeamsTab({ activeTab }) {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+      <div className="flex flex-nowrap sm:flex-wrap gap-4 overflow-x-auto custom-scrollbar pb-2">
         <input
           type="text"
           placeholder="Search teams by name or leader email..."
@@ -429,6 +436,8 @@ export default function AdminTeamsTab({ activeTab }) {
           <option value="all">All Teams</option>
           <option value="valid">Valid Teams</option>
           <option value="invalid">Invalid Teams</option>
+          <option value="submitted">Submitted</option>
+          <option value="not_submitted">Didn't Submit</option>
         </select>
         <select
           value={sortField}
@@ -496,7 +505,7 @@ export default function AdminTeamsTab({ activeTab }) {
                       </span>
                     )}
                     <div className="min-w-0" onClick={(e) => isSelectionMode && toggleExpand(team.id)}>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="font-black text-slate-900 text-base sm:text-lg truncate">{team.name}</h3>
                         {team.is_banned && (
                           <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold shrink-0">
@@ -504,10 +513,23 @@ export default function AdminTeamsTab({ activeTab }) {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 truncate">
-                        Leader: <strong>{team.leader_name || team.leader_email}</strong> • Created{' '}
-                        {new Date(team.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        {team.leader_avatar_url && !imageErrors[`${team.id}_leader`] ? (
+                          <img 
+                            src={team.leader_avatar_url} 
+                            alt="Leader Avatar" 
+                            className="w-7 h-7 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                            onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.leader_avatar_url); }}
+                            onError={() => setImageErrors(prev => ({...prev, [`${team.id}_leader`]: true}))}
+                          />
+                        ) : (
+                          <span className="text-lg shrink-0">👑</span>
+                        )}
+                        <p className="text-xs text-slate-500 truncate">
+                          Leader: <strong>{team.leader_name || team.leader_email}</strong> • Created{' '}
+                          {new Date(team.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -579,11 +601,36 @@ export default function AdminTeamsTab({ activeTab }) {
                         <h4 className="text-xs font-bold uppercase tracking-wider text-purple-500 mb-2 px-2">
                           Team Mentor
                         </h4>
-                        <div className="p-3 bg-white rounded-xl border border-purple-100 shadow-sm flex items-center justify-between gap-4">
+                        <div 
+                          className="p-3 bg-white rounded-xl border border-purple-100 shadow-sm flex items-center justify-between gap-4 cursor-pointer hover:border-purple-300 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDetailsModalData({
+                              id: team.mentor_id,
+                              name: team.mentor_name,
+                              email: team.mentor_email,
+                              avatar_url: team.mentor_avatar_url,
+                              student_id: team.mentor_student_id,
+                              batch_session: team.mentor_batch_session,
+                              isMentor: true
+                            });
+                            setDetailsModalType('member');
+                          }}
+                        >
                           <div className="flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
-                              🎓
-                            </span>
+                            {team.mentor_avatar_url && !imageErrors[`${team.id}_mentor`] ? (
+                              <img 
+                                src={team.mentor_avatar_url} 
+                                alt="Mentor Avatar" 
+                                className="w-8 h-8 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0" 
+                                onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.mentor_avatar_url); }}
+                                onError={() => setImageErrors(prev => ({...prev, [`${team.id}_mentor`]: true}))}
+                              />
+                            ) : (
+                              <span className="w-8 h-8 shrink-0 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+                                🎓
+                              </span>
+                            )}
                             <div>
                               <div className="font-bold text-slate-900 text-sm">
                                 {team.mentor_name || 'Unnamed Mentor'}
@@ -621,9 +668,19 @@ export default function AdminTeamsTab({ activeTab }) {
                                 setDetailsModalType('member');
                               }}
                             >
-                              <span className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
-                                👤
-                              </span>
+                              {member.avatar_url && !imageErrors[`${member.id}_member`] ? (
+                                <img 
+                                  src={member.avatar_url} 
+                                  alt="Member Avatar" 
+                                  className="w-8 h-8 shrink-0 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+                                  onClick={(e) => { e.stopPropagation(); setFullImageUrl(member.avatar_url); }}
+                                  onError={() => setImageErrors(prev => ({...prev, [`${member.id}_member`]: true}))}
+                                />
+                              ) : (
+                                <span className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
+                                  👤
+                                </span>
+                              )}
                               <div className="min-w-0 flex-1">
                                 <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 truncate">
                                   <span className="truncate">{member.name || 'Unnamed Member'}</span>
@@ -727,6 +784,13 @@ export default function AdminTeamsTab({ activeTab }) {
         entityName={banModalConfig.target?.name || 'Team'}
         isBanning={banModalConfig.isBanning}
       />
+
+      {fullImageUrl && (
+        <ImageModal 
+          imageUrl={fullImageUrl} 
+          onClose={() => setFullImageUrl(null)} 
+        />
+      )}
     </div>
   );
 }

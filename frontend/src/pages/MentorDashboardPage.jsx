@@ -32,6 +32,8 @@ export default function MentorDashboardPage() {
   }, [problemsOpen, activeTab]);
 
   const [invitations, setInvitations] = useState([]);
+  const [teamScores, setTeamScores] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
   const [teams, setTeams] = useState([]);
   const [maxTeams, setMaxTeams] = useState(3);
   const [loading, setLoading] = useState(true);
@@ -421,14 +423,30 @@ export default function MentorDashboardPage() {
                           }}
                           className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-colors"
                         >
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                            {member.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
+                          {member.avatar_url && !imageErrors[member.id] ? (
+                            <img 
+                              src={member.avatar_url} 
+                              alt="Member Avatar" 
+                              className="w-10 h-10 rounded-full object-cover shrink-0" 
+                              onError={() => setImageErrors(prev => ({...prev, [member.id]: true}))}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
                             <p className="text-sm font-bold text-slate-900 truncate">
-                              {member.name} {member.id === team.leader_id && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1 uppercase">Leader</span>}
+                              {member.name}
                             </p>
-                            <p className="text-xs text-slate-500 truncate">ID: {member.student_id !== 'N/A' ? member.student_id : member.email}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                              <p className="text-xs text-slate-500 truncate pr-2">ID: {member.student_id !== 'N/A' ? member.student_id : member.email}</p>
+                              {member.id === team.leader_id && (
+                                <span className="text-[9px] font-black text-amber-600 bg-amber-100/80 px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
+                                  Leader
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../config';
 import { toast } from 'sonner';
+import ImageModal from '../../components/ImageModal';
 
 export default function InviteMentorModal({ isOpen, onClose, teamId }) {
   const [mentors, setMentors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [invitingId, setInvitingId] = useState(null);
   const [mentorLimit, setMentorLimit] = useState(3);
+  const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
 
   useEffect(() => {
     if (isOpen) {
@@ -109,9 +112,19 @@ export default function InviteMentorModal({ isOpen, onClose, teamId }) {
                 return (
                   <div key={mentor.id} className={`flex items-center justify-between p-4 rounded-xl border ${isFull ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm'}`}>
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isFull ? 'bg-slate-400' : 'bg-gradient-to-br from-blue-600 to-indigo-700'}`}>
-                        {mentor.name.charAt(0).toUpperCase()}
-                      </div>
+                      {mentor.avatar_url && !imageErrors[mentor.id] ? (
+                        <img 
+                          src={mentor.avatar_url} 
+                          alt="Mentor Avatar" 
+                          className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
+                          onClick={() => setFullImageUrl(mentor.avatar_url)} 
+                          onError={() => setImageErrors(prev => ({...prev, [mentor.id]: true}))}
+                        />
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isFull ? 'bg-slate-400' : 'bg-gradient-to-br from-blue-600 to-indigo-700'}`}>
+                          {mentor.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <p className={`font-bold ${isFull ? 'text-slate-600' : 'text-slate-900'}`}>{mentor.name}</p>
                         <p className="text-xs text-slate-500">Mentoring {mentor.team_count}/{mentorLimit} teams</p>
@@ -140,6 +153,12 @@ export default function InviteMentorModal({ isOpen, onClose, teamId }) {
           )}
         </div>
       </div>
+      {fullImageUrl && (
+        <ImageModal 
+          imageUrl={fullImageUrl} 
+          onClose={() => setFullImageUrl(null)} 
+        />
+      )}
     </div>
   );
 }

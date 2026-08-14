@@ -1,5 +1,6 @@
 import { pool } from '../../config/db.config';
 import { CustomError } from '../../error/customErrors';
+import cloudinary from '../../config/cloudinary.config';
 
 export interface UserInfo {
     userId: string;
@@ -24,7 +25,8 @@ export const getProfile = async (userId: string) => {
             name: row.name,
             studentId: row.student_id,
             batchSession: row.batch_session,
-            phoneNumber: row.phone_number
+            phoneNumber: row.phone_number,
+            avatar_url: row.avatar_url
         };
     } catch (error: any) {
         console.error('Service Error [getProfile]:', error);
@@ -62,7 +64,8 @@ export const upsertProfile = async (data: UserInfo) => {
             name: row.name,
             studentId: row.student_id,
             batchSession: row.batch_session,
-            phoneNumber: row.phone_number
+            phoneNumber: row.phone_number,
+            avatar_url: row.avatar_url
         };
     } catch (error: any) {
         console.error('Service Error [upsertProfile]:', error);
@@ -77,7 +80,8 @@ export const searchUsers = async (searchQuery: string) => {
                 u.id as user_id, 
                 u.email, 
                 COALESCE(ui.name, '') as name, 
-                COALESCE(ui.student_id, '') as student_id
+                COALESCE(ui.student_id, '') as student_id,
+                ui.avatar_url
             FROM users u
             LEFT JOIN user_info ui ON u.id = ui.user_id
             LEFT JOIN team_members tm ON u.id = tm.user_id
@@ -93,4 +97,45 @@ export const searchUsers = async (searchQuery: string) => {
         console.error('Service Error [searchUsers]:', error);
         throw new CustomError('Failed to search users', 500);
     }
+};
+
+export const uploadAvatarToCloudinary = async (userId: string, file: Express.Multer.File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: 'hackathon_avatars',
+                public_id: `user_${userId}`,
+                overwrite: true,
+                transformation: [
+                    { width: 500, height: 500, crop: 'fill', gravity: 'face' }
+                ]
+            },
+            async (error, result) => {
+                if (error) {
+                    console.error('Cloudinary upload error:', error);
+                    return reject(new CustomError('Failed to upload image to Cloudinary', 500));
+                }
+                
+                if (result && result.secure_url) {
+                    try {
+                        const query = `
+                            INSERT INTO user_info (user_id, avatar_url)
+                            VALUES ($1, $2)
+                            ON CONFLICT (user_id) 
+                            DO UPDATE SET avatar_url = EXCLUDED.avatar_url, updated_at = CURRENT_TIMESTAMP
+                            RETURNING avatar_url;
+                        `;
+                        const dbResult = await pool.query(query, [userId, result.secure_url]);
+                        resolve(dbResult.rows[0].avatar_url);
+                    } catch (dbErr) {
+                        console.error('DB update error after Cloudinary upload:', dbErr);
+                        reject(new CustomError('Failed to save avatar URL to database', 500));
+                    }
+                } else {
+                    reject(new CustomError('Cloudinary upload failed (no url returned)', 500));
+                }
+            }
+        );
+        uploadStream.end(file.buffer);
+    });
 };

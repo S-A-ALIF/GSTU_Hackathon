@@ -8,6 +8,7 @@ export const mentorService = {
                 u.id, 
                 u.email, 
                 COALESCE(ui.name, u.email) as name,
+                ui.avatar_url,
                 (SELECT COUNT(*) FROM teams t WHERE t.mentor_id = u.id) as team_count
             FROM users u
             LEFT JOIN user_info ui ON u.id = ui.user_id
@@ -214,7 +215,8 @@ export const mentorService = {
             SELECT tm.team_id, u.id, u.email, u.role,
                    COALESCE(ui.name, u.email) as name,
                    COALESCE(ui.student_id, 'N/A') as student_id,
-                   COALESCE(ui.batch_session, 'N/A') as batch_session
+                   COALESCE(ui.batch_session, 'N/A') as batch_session,
+                   ui.avatar_url
             FROM team_members tm
             JOIN users u ON tm.user_id = u.id
             LEFT JOIN user_info ui ON u.id = ui.user_id

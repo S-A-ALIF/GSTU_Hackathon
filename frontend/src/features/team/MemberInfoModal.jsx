@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ImageModal from '../../components/ImageModal';
 
-export default function MemberInfoModal({ isOpen, onClose, member, isLeader = false }) {
+export default function MemberInfoModal({ isOpen, onClose, member, isLeader = false, isMentor = false }) {
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [imageError, setImageError] = useState(false);
   if (!isOpen || !member) return null;
 
   const getInitial = (name, email) => {
@@ -10,7 +13,7 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div 
         onClick={(e) => e.stopPropagation()} 
         className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 relative border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200"
@@ -26,20 +29,31 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
         </button>
 
         <div className="flex flex-col items-center text-center mt-2">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-500/25 mb-4">
-            {getInitial(member.name, member.email)}
-          </div>
+          {member.avatar_url && !imageError ? (
+            <div 
+              className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg shadow-blue-500/25 mb-4 border-2 border-white dark:border-slate-800 cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setShowFullImage(true)}
+            >
+              <img src={member.avatar_url} alt={member.name || member.email} className="w-full h-full object-cover" onError={() => setImageError(true)} />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-500/25 mb-4">
+              {getInitial(member.name, member.email)}
+            </div>
+          )}
 
           <h3 className="text-2xl font-black text-slate-900 dark:text-white break-words">
             {member.name || member.email}
           </h3>
-          <p className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 break-words">
-            Student ID: {member.student_id && member.student_id !== 'N/A' ? member.student_id : 'Not provided'}
-          </p>
 
           {isLeader && (
             <span className="mt-3 px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded-full text-xs font-black tracking-wide uppercase">
               Team Leader
+            </span>
+          )}
+          {isMentor && (
+            <span className="mt-3 px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded-full text-xs font-black tracking-wide uppercase">
+              Mentor
             </span>
           )}
         </div>
@@ -73,6 +87,12 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
           </button>
         </div>
       </div>
+      {showFullImage && member.avatar_url && (
+        <ImageModal 
+          imageUrl={member.avatar_url} 
+          onClose={() => setShowFullImage(false)} 
+        />
+      )}
     </div>
   );
 }

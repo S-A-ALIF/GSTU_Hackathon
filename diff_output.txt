@@ -1,0 +1,1335 @@
+﻿diff --git a/backend/package-lock.json b/backend/package-lock.json
+index b965284..f19e229 100644
+--- a/backend/package-lock.json
++++ b/backend/package-lock.json
+@@ -10,10 +10,12 @@
+       "license": "ISC",
+       "dependencies": {
+         "bcrypt": "^6.0.0",
++        "cloudinary": "^2.10.0",
+         "cors": "^2.8.5",
+         "dotenv": "^16.4.5",
+         "express": "^4.19.2",
+         "jsonwebtoken": "^9.0.3",
++        "multer": "^2.2.0",
+         "nodemailer": "^8.0.11",
+         "pg": "^8.11.5",
+         "socket.io": "^4.8.3",
+@@ -24,6 +26,7 @@
+         "@types/cors": "^2.8.17",
+         "@types/express": "^4.17.21",
+         "@types/jsonwebtoken": "^9.0.10",
++        "@types/multer": "^2.2.0",
+         "@types/node": "^20.12.7",
+         "@types/nodemailer": "^8.0.1",
+         "@types/pg": "^8.11.6",
+@@ -205,6 +208,16 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/@types/multer": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/@types/multer/-/multer-2.2.0.tgz",
++      "integrity": "sha512-3U1troeqGV8Ntp7Q3klwf4zr23VEoqYVocYXaswm9+8z3O9UHDYAqLxjJ/h550iRADTjKdOdhhasXw6gD6kYtg==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "@types/express": "*"
++      }
++    },
+     "node_modules/@types/node": {
+       "version": "20.19.42",
+       "resolved": "https://registry.npmjs.org/@types/node/-/node-20.19.42.tgz",
+@@ -369,6 +382,12 @@
+         "node": ">= 8"
+       }
+     },
++    "node_modules/append-field": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/append-field/-/append-field-1.0.0.tgz",
++      "integrity": "sha512-klpgFSWLW1ZEs8svjfb7g4qWY0YS5imI82dTg+QahUvJ8YqAY0P10Uk8tTyh9ZGuYEZEMaeJYCF5BFuX552hsw==",
++      "license": "MIT"
++    },
+     "node_modules/arg": {
+       "version": "4.1.3",
+       "resolved": "https://registry.npmjs.org/arg/-/arg-4.1.3.tgz",
+@@ -483,9 +502,19 @@
+       "version": "1.1.2",
+       "resolved": "https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.2.tgz",
+       "integrity": "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==",
+-      "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/busboy": {
++      "version": "1.6.0",
++      "resolved": "https://registry.npmjs.org/busboy/-/busboy-1.6.0.tgz",
++      "integrity": "sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==",
++      "dependencies": {
++        "streamsearch": "^1.1.0"
++      },
++      "engines": {
++        "node": ">=10.16.0"
++      }
++    },
+     "node_modules/bytes": {
+       "version": "3.1.2",
+       "resolved": "https://registry.npmjs.org/bytes/-/bytes-3.1.2.tgz",
+@@ -549,6 +578,18 @@
+         "fsevents": "~2.3.2"
+       }
+     },
++    "node_modules/cloudinary": {
++      "version": "2.10.0",
++      "resolved": "https://registry.npmjs.org/cloudinary/-/cloudinary-2.10.0.tgz",
++      "integrity": "sha512-sY09kYg7wprkndAOjZBAYqFZqwL+SxnEGcAvksOvFA+5upnFn949UjkEkHKNSwkBtW/xRDd0p6NgbSXZcxkI3w==",
++      "license": "MIT",
++      "dependencies": {
++        "lodash": "^4.17.23"
++      },
++      "engines": {
++        "node": ">=9"
++      }
++    },
+     "node_modules/concat-map": {
+       "version": "0.0.1",
+       "resolved": "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz",
+@@ -556,6 +597,21 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/concat-stream": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/concat-stream/-/concat-stream-2.0.0.tgz",
++      "integrity": "sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==",
++      "engines": [
++        "node >= 6.0"
++      ],
++      "license": "MIT",
++      "dependencies": {
++        "buffer-from": "^1.0.0",
++        "inherits": "^2.0.3",
++        "readable-stream": "^3.0.2",
++        "typedarray": "^0.0.6"
++      }
++    },
+     "node_modules/content-disposition": {
+       "version": "0.5.4",
+       "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-0.5.4.tgz",
+@@ -1216,6 +1272,12 @@
+         "safe-buffer": "^5.0.1"
+       }
+     },
++    "node_modules/lodash": {
++      "version": "4.18.1",
++      "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.18.1.tgz",
++      "integrity": "sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==",
++      "license": "MIT"
++    },
+     "node_modules/lodash.includes": {
+       "version": "4.3.0",
+       "resolved": "https://registry.npmjs.org/lodash.includes/-/lodash.includes-4.3.0.tgz",
+@@ -1376,6 +1438,25 @@
+       "integrity": "sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==",
+       "license": "MIT"
+     },
++    "node_modules/multer": {
++      "version": "2.2.0",
++      "resolved": "https://registry.npmjs.org/multer/-/multer-2.2.0.tgz",
++      "integrity": "sha512-6rdyFg2kLrMh9Jee7/BMPuV9lEAd7lLW2YUpF9/YxR7njyoUwwQ0ZPh3TaIY50Sw6vlyD2HW3wGOkTS4P79xrQ==",
++      "license": "MIT",
++      "dependencies": {
++        "append-field": "^1.0.0",
++        "busboy": "^1.6.0",
++        "concat-stream": "^2.0.0",
++        "type-is": "^1.6.18"
++      },
++      "engines": {
++        "node": ">= 10.16.0"
++      },
++      "funding": {
++        "type": "opencollective",
++        "url": "https://opencollective.com/express"
++      }
++    },
+     "node_modules/negotiator": {
+       "version": "0.6.3",
+       "resolved": "https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz",
+@@ -1692,6 +1773,20 @@
+         "node": ">= 0.8"
+       }
+     },
++    "node_modules/readable-stream": {
++      "version": "3.6.2",
++      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
++      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
++      "license": "MIT",
++      "dependencies": {
++        "inherits": "^2.0.3",
++        "string_decoder": "^1.1.1",
++        "util-deprecate": "^1.0.1"
++      },
++      "engines": {
++        "node": ">= 6"
++      }
++    },
+     "node_modules/readdirp": {
+       "version": "3.6.0",
+       "resolved": "https://registry.npmjs.org/readdirp/-/readdirp-3.6.0.tgz",
+@@ -2051,6 +2146,23 @@
+         "node": ">= 0.8"
+       }
+     },
++    "node_modules/streamsearch": {
++      "version": "1.1.0",
++      "resolved": "https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz",
++      "integrity": "sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==",
++      "engines": {
++        "node": ">=10.0.0"
++      }
++    },
++    "node_modules/string_decoder": {
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz",
++      "integrity": "sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==",
++      "license": "MIT",
++      "dependencies": {
++        "safe-buffer": "~5.2.0"
++      }
++    },
+     "node_modules/strip-bom": {
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/strip-bom/-/strip-bom-3.0.0.tgz",
+@@ -2221,6 +2333,12 @@
+         "node": ">= 0.6"
+       }
+     },
++    "node_modules/typedarray": {
++      "version": "0.0.6",
++      "resolved": "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz",
++      "integrity": "sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==",
++      "license": "MIT"
++    },
+     "node_modules/typescript": {
+       "version": "5.9.3",
+       "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+@@ -2250,6 +2368,12 @@
+         "node": ">= 0.8"
+       }
+     },
++    "node_modules/util-deprecate": {
++      "version": "1.0.2",
++      "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz",
++      "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==",
++      "license": "MIT"
++    },
+     "node_modules/utils-merge": {
+       "version": "1.0.1",
+       "resolved": "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz",
+diff --git a/backend/package.json b/backend/package.json
+index df332e8..3737c02 100644
+--- a/backend/package.json
++++ b/backend/package.json
+@@ -15,10 +15,12 @@
+   "license": "ISC",
+   "dependencies": {
+     "bcrypt": "^6.0.0",
++    "cloudinary": "^2.10.0",
+     "cors": "^2.8.5",
+     "dotenv": "^16.4.5",
+     "express": "^4.19.2",
+     "jsonwebtoken": "^9.0.3",
++    "multer": "^2.2.0",
+     "nodemailer": "^8.0.11",
+     "pg": "^8.11.5",
+     "socket.io": "^4.8.3",
+@@ -29,6 +31,7 @@
+     "@types/cors": "^2.8.17",
+     "@types/express": "^4.17.21",
+     "@types/jsonwebtoken": "^9.0.10",
++    "@types/multer": "^2.2.0",
+     "@types/node": "^20.12.7",
+     "@types/nodemailer": "^8.0.1",
+     "@types/pg": "^8.11.6",
+diff --git a/backend/src/feats/admin/admin.controller.ts b/backend/src/feats/admin/admin.controller.ts
+index 3fad255..5abb644 100644
+--- a/backend/src/feats/admin/admin.controller.ts
++++ b/backend/src/feats/admin/admin.controller.ts
+@@ -62,10 +62,14 @@ export const getAllTeams = async (req: Request, res: Response) => {
+                 t.is_banned,
+                 t.ban_reason,
+                 t.mentor_id,
++                t.is_submitted,
++                t.submitted_at,
+                 u.email as leader_email,
+                 ui.name as leader_name,
++                ui.avatar_url as leader_avatar_url,
+                 m.email as mentor_email,
+                 mi.name as mentor_name,
++                mi.avatar_url as mentor_avatar_url,
+                 COALESCE(
+                     (
+                         SELECT json_agg(
+@@ -74,6 +78,7 @@ export const getAllTeams = async (req: Request, res: Response) => {
+                                 'email', m_user.email,
+                                 'role', m_user.role,
+                                 'name', COALESCE(m_info.name, ''),
++                                'avatar_url', m_info.avatar_url,
+                                 'student_id', COALESCE(m_info.student_id, ''),
+                                 'batch_session', COALESCE(m_info.batch_session, ''),
+                                 'phone_number', COALESCE(m_info.phone_number, '')
+@@ -282,6 +287,7 @@ export const getAllMembers = async (req: Request, res: Response) => {
+                 u.created_at,
+                 u.is_banned,
+                 u.ban_reason,
++                ui.avatar_url,
+                 COALESCE(ui.name, '') as name,
+                 COALESCE(ui.student_id, '') as student_id,
+                 COALESCE(ui.batch_session, '') as batch_session,
+diff --git a/backend/src/feats/auth/auth.service.ts b/backend/src/feats/auth/auth.service.ts
+index 1c7cfad..f6458ac 100644
+--- a/backend/src/feats/auth/auth.service.ts
++++ b/backend/src/feats/auth/auth.service.ts
+@@ -91,7 +91,7 @@ export const loginUser = async (email: string, password: string) => {
+     try {
+         // 1. Fetch user by email with user_info in a single JOIN
+         const query = `
+-            SELECT u.*, ui.name, ui.student_id, ui.batch_session, ui.phone_number,
++            SELECT u.*, ui.name, ui.student_id, ui.batch_session, ui.phone_number, ui.avatar_url,
+                    t.is_banned as team_is_banned, t.ban_reason as team_ban_reason
+             FROM users u
+             LEFT JOIN user_info ui ON u.id = ui.user_id
+@@ -134,7 +134,8 @@ export const loginUser = async (email: string, password: string) => {
+                     name: user.name || '',
+                     student_id: user.student_id || '',
+                     batch_session: user.batch_session || '',
+-                    phone_number: user.phone_number || ''
++                    phone_number: user.phone_number || '',
++                    avatar_url: user.avatar_url || ''
+                 }
+             }
+         };
+@@ -150,7 +151,7 @@ export const getMe = async (userId: string, role?: string) => {
+     try {
+         const userQuery = `
+             SELECT u.id, u.email, u.role, u.created_at, u.is_banned, u.ban_reason,
+-                   ui.name, ui.student_id, ui.batch_session, ui.phone_number,
++                   ui.name, ui.student_id, ui.batch_session, ui.phone_number, ui.avatar_url,
+                    t.id as team_id, t.name as team_name, t.leader_id,
+                    t.is_banned as team_is_banned, t.ban_reason as team_ban_reason
+             FROM users u
+diff --git a/backend/src/feats/mentor/mentor.service.ts b/backend/src/feats/mentor/mentor.service.ts
+index 15d308b..7dac717 100644
+--- a/backend/src/feats/mentor/mentor.service.ts
++++ b/backend/src/feats/mentor/mentor.service.ts
+@@ -8,6 +8,7 @@ export const mentorService = {
+                 u.id, 
+                 u.email, 
+                 COALESCE(ui.name, u.email) as name,
++                ui.avatar_url,
+                 (SELECT COUNT(*) FROM teams t WHERE t.mentor_id = u.id) as team_count
+             FROM users u
+             LEFT JOIN user_info ui ON u.id = ui.user_id
+@@ -214,7 +215,8 @@ export const mentorService = {
+             SELECT tm.team_id, u.id, u.email, u.role,
+                    COALESCE(ui.name, u.email) as name,
+                    COALESCE(ui.student_id, 'N/A') as student_id,
+-                   COALESCE(ui.batch_session, 'N/A') as batch_session
++                   COALESCE(ui.batch_session, 'N/A') as batch_session,
++                   ui.avatar_url
+             FROM team_members tm
+             JOIN users u ON tm.user_id = u.id
+             LEFT JOIN user_info ui ON u.id = ui.user_id
+diff --git a/backend/src/feats/team/team.service.ts b/backend/src/feats/team/team.service.ts
+index a10a6ef..1e0d729 100644
+--- a/backend/src/feats/team/team.service.ts
++++ b/backend/src/feats/team/team.service.ts
+@@ -29,7 +29,8 @@ export const teamService = {
+                    COALESCE(ui.name, u.email) as name,
+                    COALESCE(ui.student_id, 'N/A') as student_id,
+                    COALESCE(ui.batch_session, 'N/A') as batch_session,
+-                   COALESCE(ui.phone_number, 'N/A') as phone_number
++                   COALESCE(ui.phone_number, 'N/A') as phone_number,
++                   ui.avatar_url
+             FROM team_members tm
+             JOIN users u ON tm.user_id = u.id
+             LEFT JOIN user_info ui ON u.id = ui.user_id
+@@ -37,7 +38,7 @@ export const teamService = {
+         `;
+ 
+         const [teamRes, membersRes, settingsRes] = await Promise.all([
+-            pool.query('SELECT t.id, t.name, t.team_code, t.leader_id, t.mentor_id, t.repo_url, t.live_url, t.video_url, COALESCE(t.is_submitted, false) as is_submitted, t.submitted_at, COALESCE(t.is_full, false) as is_full, t.created_at, COALESCE(ui.name, u.email) as mentor_name FROM teams t LEFT JOIN users u ON t.mentor_id = u.id LEFT JOIN user_info ui ON u.id = ui.user_id WHERE t.id = $1', [teamId]),
++            pool.query('SELECT t.id, t.name, t.team_code, t.leader_id, t.mentor_id, t.repo_url, t.live_url, t.video_url, COALESCE(t.is_submitted, false) as is_submitted, t.submitted_at, COALESCE(t.is_full, false) as is_full, t.created_at, COALESCE(ui.name, u.email) as mentor_name, ui.avatar_url as mentor_avatar_url FROM teams t LEFT JOIN users u ON t.mentor_id = u.id LEFT JOIN user_info ui ON u.id = ui.user_id WHERE t.id = $1', [teamId]),
+             pool.query(membersQuery, [teamId]),
+             pool.query("SELECT key, value FROM platform_settings WHERE key IN ('min_team_members', 'max_team_members')")
+         ]);
+diff --git a/backend/src/feats/user/user.controller.ts b/backend/src/feats/user/user.controller.ts
+index 1143f01..add8876 100644
+--- a/backend/src/feats/user/user.controller.ts
++++ b/backend/src/feats/user/user.controller.ts
+@@ -68,3 +68,27 @@ export const searchUsers = async (req: Request, res: Response, next: NextFunctio
+     }
+ };
+ 
++export const uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
++    try {
++        const userId = (req as any).user?.id;
++        if (!userId) {
++            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
++        }
++
++        const file = req.file;
++        if (!file) {
++            return res.status(400).json({ status: 'error', message: 'No file uploaded' });
++        }
++
++        const avatarUrl = await userService.uploadAvatarToCloudinary(userId, file);
++
++        res.status(200).json({
++            status: 'success',
++            success: true,
++            message: 'Avatar uploaded successfully',
++            data: { avatar_url: avatarUrl }
++        });
++    } catch (error) {
++        next(error);
++    }
++};
+diff --git a/backend/src/feats/user/user.routes.ts b/backend/src/feats/user/user.routes.ts
+index 2ec7314..f3ffa49 100644
+--- a/backend/src/feats/user/user.routes.ts
++++ b/backend/src/feats/user/user.routes.ts
+@@ -3,6 +3,7 @@ import * as userController from './user.controller';
+ import { validateRequest } from '../../middlewares/validateRequest';
+ import { userProfileSchema } from './user.validator';
+ import { authMiddleware } from '../auth/auth.middleware';
++import multer from 'multer';
+ 
+ const router = Router();
+ 
+@@ -39,4 +40,18 @@ router.get(
+     userController.searchUsers
+ );
+ 
++const storage = multer.memoryStorage();
++const upload = multer({ storage });
++
++/**
++ * @route   POST /api/v1/users/profile/avatar
++ * @desc    Upload or update the user's avatar image
++ * @access  Private
++ */
++router.post(
++    '/profile/avatar',
++    upload.single('avatar'),
++    userController.uploadAvatar
++);
++
+ export default router;
+diff --git a/backend/src/feats/user/user.service.ts b/backend/src/feats/user/user.service.ts
+index 2aa6c27..7e3534c 100644
+--- a/backend/src/feats/user/user.service.ts
++++ b/backend/src/feats/user/user.service.ts
+@@ -1,5 +1,6 @@
+ import { pool } from '../../config/db.config';
+ import { CustomError } from '../../error/customErrors';
++import cloudinary from '../../config/cloudinary.config';
+ 
+ export interface UserInfo {
+     userId: string;
+@@ -24,7 +25,8 @@ export const getProfile = async (userId: string) => {
+             name: row.name,
+             studentId: row.student_id,
+             batchSession: row.batch_session,
+-            phoneNumber: row.phone_number
++            phoneNumber: row.phone_number,
++            avatar_url: row.avatar_url
+         };
+     } catch (error: any) {
+         console.error('Service Error [getProfile]:', error);
+@@ -62,7 +64,8 @@ export const upsertProfile = async (data: UserInfo) => {
+             name: row.name,
+             studentId: row.student_id,
+             batchSession: row.batch_session,
+-            phoneNumber: row.phone_number
++            phoneNumber: row.phone_number,
++            avatar_url: row.avatar_url
+         };
+     } catch (error: any) {
+         console.error('Service Error [upsertProfile]:', error);
+@@ -77,7 +80,8 @@ export const searchUsers = async (searchQuery: string) => {
+                 u.id as user_id, 
+                 u.email, 
+                 COALESCE(ui.name, '') as name, 
+-                COALESCE(ui.student_id, '') as student_id
++                COALESCE(ui.student_id, '') as student_id,
++                ui.avatar_url
+             FROM users u
+             LEFT JOIN user_info ui ON u.id = ui.user_id
+             LEFT JOIN team_members tm ON u.id = tm.user_id
+@@ -94,3 +98,44 @@ export const searchUsers = async (searchQuery: string) => {
+         throw new CustomError('Failed to search users', 500);
+     }
+ };
++
++export const uploadAvatarToCloudinary = async (userId: string, file: Express.Multer.File): Promise<string> => {
++    return new Promise((resolve, reject) => {
++        const uploadStream = cloudinary.uploader.upload_stream(
++            {
++                folder: 'hackathon_avatars',
++                public_id: `user_${userId}`,
++                overwrite: true,
++                transformation: [
++                    { width: 500, height: 500, crop: 'fill', gravity: 'face' }
++                ]
++            },
++            async (error, result) => {
++                if (error) {
++                    console.error('Cloudinary upload error:', error);
++                    return reject(new CustomError('Failed to upload image to Cloudinary', 500));
++                }
++                
++                if (result && result.secure_url) {
++                    try {
++                        const query = `
++                            INSERT INTO user_info (user_id, avatar_url)
++                            VALUES ($1, $2)
++                            ON CONFLICT (user_id) 
++                            DO UPDATE SET avatar_url = EXCLUDED.avatar_url, updated_at = CURRENT_TIMESTAMP
++                            RETURNING avatar_url;
++                        `;
++                        const dbResult = await pool.query(query, [userId, result.secure_url]);
++                        resolve(dbResult.rows[0].avatar_url);
++                    } catch (dbErr) {
++                        console.error('DB update error after Cloudinary upload:', dbErr);
++                        reject(new CustomError('Failed to save avatar URL to database', 500));
++                    }
++                } else {
++                    reject(new CustomError('Cloudinary upload failed (no url returned)', 500));
++                }
++            }
++        );
++        uploadStream.end(file.buffer);
++    });
++};
+diff --git a/frontend/src/contexts/AuthContext.jsx b/frontend/src/contexts/AuthContext.jsx
+index ee31e39..2671262 100644
+--- a/frontend/src/contexts/AuthContext.jsx
++++ b/frontend/src/contexts/AuthContext.jsx
+@@ -19,13 +19,13 @@ export function AuthProvider({ children }) {
+   const [currentUser, setCurrentUser] = useState(null);
+   const [userProfile, setUserProfile] = useState(null);
+   const [loading, setLoading] = useState(true);
+-  const [rawRegistrationOpen, setRawRegistrationOpen] = useState(true);
++  const [rawRegistrationOpen, setRawRegistrationOpen] = useState(false);
+   const [regOverride, setRegOverride] = useState(false);
+   const [rawWorkspaceOpen, setRawWorkspaceOpen] = useState(false);
+   const [hackOverride, setHackOverride] = useState(false);
+   const [rawProblemsOpen, setRawProblemsOpen] = useState(false);
+   const [probOverride, setProbOverride] = useState(false);
+-  const [registrationOpen, setRegistrationOpen] = useState(true);
++  const [registrationOpen, setRegistrationOpen] = useState(false);
+   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+   const [problemsOpen, setProblemsOpen] = useState(false);
+   const [feedbackOpen, setFeedbackOpen] = useState(true);
+@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
+   const [regEndTime, setRegEndTime] = useState('');
+   const [hackStartTime, setHackStartTime] = useState('');
+   const [hackEndTime, setHackEndTime] = useState('');
+-  const [isSubmissionOpen, setIsSubmissionOpen] = useState(true);
++  const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
+ 
+   const fetchPlatformSettings = async () => {
+     try {
+@@ -189,6 +189,7 @@ export function AuthProvider({ children }) {
+               student_id: data.data.student_id || '',
+               batch_session: data.data.batch_session || '',
+               phone_number: data.data.phone_number || '',
++              avatar_url: data.data.avatar_url || '',
+               isBanned: data.data.is_banned || false,
+               banReason: data.data.ban_reason || ''
+             });
+diff --git a/frontend/src/features/admin/AdminMembersTab.jsx b/frontend/src/features/admin/AdminMembersTab.jsx
+index 2ec21f5..dca37bb 100644
+--- a/frontend/src/features/admin/AdminMembersTab.jsx
++++ b/frontend/src/features/admin/AdminMembersTab.jsx
+@@ -7,6 +7,7 @@ import ConfirmModal from '../../components/ConfirmModal';
+ import { adminCache } from './adminCache';
+ import BanModal from './BanModal';
+ import { useAuth } from '../../contexts/AuthContext';
++import ImageModal from '../../components/ImageModal';
+ 
+ export default function AdminMembersTab({ setParentActiveTab }) {
+   const { socket } = useAuth();
+@@ -27,6 +28,7 @@ export default function AdminMembersTab({ setParentActiveTab }) {
+   // Modals state
+   const [detailsModalData, setDetailsModalData] = useState(null);
+   const [editModalData, setEditModalData] = useState(null);
++  const [fullImageUrl, setFullImageUrl] = useState(null);
+ 
+   // Menu open state
+   const [openMenuId, setOpenMenuId] = useState(null);
+@@ -345,11 +347,25 @@ export default function AdminMembersTab({ setParentActiveTab }) {
+           </td>
+         )}
+         <td
+-          className="py-3 px-4 cursor-pointer"
++          className="py-3 px-4 flex items-center gap-3 cursor-pointer"
+           onClick={() => setDetailsModalData(m)}
+         >
+-          <div className="font-bold text-slate-900">{m.name || 'Unnamed Member'}</div>
+-          <div className="text-xs text-slate-500">{m.email}</div>
++          {m.avatar_url ? (
++            <img 
++              src={m.avatar_url} 
++              alt="Avatar" 
++              className="w-10 h-10 rounded-full object-cover shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
++              onClick={(e) => { e.stopPropagation(); setFullImageUrl(m.avatar_url); }}
++            />
++          ) : (
++            <span className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-lg shrink-0">
++              ≡ƒæñ
++            </span>
++          )}
++          <div className="min-w-0">
++            <div className="font-bold text-slate-900 truncate">{m.name || 'Unnamed Member'}</div>
++            <div className="text-xs text-slate-500 truncate">{m.email}</div>
++          </div>
+         </td>
+         <td className="py-3 px-4 font-mono text-slate-700">{m.student_id || 'ΓÇö'}</td>
+         <td className="py-3 px-4 text-slate-700">{m.batch_session || 'ΓÇö'}</td>
+@@ -694,6 +710,13 @@ export default function AdminMembersTab({ setParentActiveTab }) {
+         entityName={banModalConfig.target?.email || 'Member'}
+         isBanning={banModalConfig.isBanning}
+       />
++
++      {fullImageUrl && (
++        <ImageModal 
++          imageUrl={fullImageUrl} 
++          onClose={() => setFullImageUrl(null)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/features/admin/AdminTeamsTab.jsx b/frontend/src/features/admin/AdminTeamsTab.jsx
+index 18e8305..30f4b43 100644
+--- a/frontend/src/features/admin/AdminTeamsTab.jsx
++++ b/frontend/src/features/admin/AdminTeamsTab.jsx
+@@ -7,6 +7,7 @@ import EditModal from './EditModal';
+ import ConfirmModal from '../../components/ConfirmModal';
+ import { adminCache } from './adminCache';
+ import { useAuth } from '../../contexts/AuthContext';
++import ImageModal from '../../components/ImageModal';
+ 
+ export default function AdminTeamsTab({ activeTab }) {
+   const { socket } = useAuth();
+@@ -29,6 +30,7 @@ export default function AdminTeamsTab({ activeTab }) {
+   const [editModalData, setEditModalData] = useState(null);
+   const [banModalConfig, setBanModalConfig] = useState({ isOpen: false, target: null, isBanning: false });
+   const [editModalType, setEditModalType] = useState('team');
++  const [fullImageUrl, setFullImageUrl] = useState(null);
+ 
+   // Menu open state
+   const [openMenuId, setOpenMenuId] = useState(null);
+@@ -326,6 +328,10 @@ export default function AdminTeamsTab({ activeTab }) {
+        if (!t.mentor_id || (t.members?.length || 0) < getMinTeamSize()) return false;
+     } else if (teamFilter === 'invalid') {
+        if (t.mentor_id && (t.members?.length || 0) >= getMinTeamSize()) return false;
++    } else if (teamFilter === 'submitted') {
++       if (!t.is_submitted) return false;
++    } else if (teamFilter === 'not_submitted') {
++       if (t.is_submitted) return false;
+     }
+     
+     return true;
+@@ -429,6 +435,8 @@ export default function AdminTeamsTab({ activeTab }) {
+           <option value="all">All Teams</option>
+           <option value="valid">Valid Teams</option>
+           <option value="invalid">Invalid Teams</option>
++          <option value="submitted">Submitted</option>
++          <option value="not_submitted">Didn't Submit</option>
+         </select>
+         <select
+           value={sortField}
+@@ -496,7 +504,7 @@ export default function AdminTeamsTab({ activeTab }) {
+                       </span>
+                     )}
+                     <div className="min-w-0" onClick={(e) => isSelectionMode && toggleExpand(team.id)}>
+-                      <div className="flex items-center gap-2 flex-wrap">
++                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                         <h3 className="font-black text-slate-900 text-base sm:text-lg truncate">{team.name}</h3>
+                         {team.is_banned && (
+                           <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold shrink-0">
+@@ -504,10 +512,22 @@ export default function AdminTeamsTab({ activeTab }) {
+                           </span>
+                         )}
+                       </div>
+-                      <p className="text-xs text-slate-500 truncate">
+-                        Leader: <strong>{team.leader_name || team.leader_email}</strong> ΓÇó Created{' '}
+-                        {new Date(team.created_at).toLocaleDateString()}
+-                      </p>
++                      <div className="flex items-center gap-2">
++                        {team.leader_avatar_url ? (
++                          <img 
++                            src={team.leader_avatar_url} 
++                            alt="Leader Avatar" 
++                            className="w-5 h-5 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0"
++                            onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.leader_avatar_url); }}
++                          />
++                        ) : (
++                          <span className="text-sm shrink-0">≡ƒææ</span>
++                        )}
++                        <p className="text-xs text-slate-500 truncate">
++                          Leader: <strong>{team.leader_name || team.leader_email}</strong> ΓÇó Created{' '}
++                          {new Date(team.created_at).toLocaleDateString()}
++                        </p>
++                      </div>
+                     </div>
+                   </div>
+ 
+@@ -581,9 +601,18 @@ export default function AdminTeamsTab({ activeTab }) {
+                         </h4>
+                         <div className="p-3 bg-white rounded-xl border border-purple-100 shadow-sm flex items-center justify-between gap-4">
+                           <div className="flex items-center gap-3">
+-                            <span className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+-                              ≡ƒÄô
+-                            </span>
++                            {team.mentor_avatar_url ? (
++                              <img 
++                                src={team.mentor_avatar_url} 
++                                alt="Mentor Avatar" 
++                                className="w-8 h-8 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity" 
++                                onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.mentor_avatar_url); }}
++                              />
++                            ) : (
++                              <span className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
++                                ≡ƒÄô
++                              </span>
++                            )}
+                             <div>
+                               <div className="font-bold text-slate-900 text-sm">
+                                 {team.mentor_name || 'Unnamed Mentor'}
+@@ -621,9 +650,18 @@ export default function AdminTeamsTab({ activeTab }) {
+                                 setDetailsModalType('member');
+                               }}
+                             >
+-                              <span className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
+-                                ≡ƒæñ
+-                              </span>
++                              {member.avatar_url ? (
++                                <img 
++                                  src={member.avatar_url} 
++                                  alt="Member Avatar" 
++                                  className="w-8 h-8 shrink-0 rounded-lg object-cover cursor-pointer hover:opacity-80 transition-opacity" 
++                                  onClick={(e) => { e.stopPropagation(); setFullImageUrl(member.avatar_url); }}
++                                />
++                              ) : (
++                                <span className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
++                                  ≡ƒæñ
++                                </span>
++                              )}
+                               <div className="min-w-0 flex-1">
+                                 <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 truncate">
+                                   <span className="truncate">{member.name || 'Unnamed Member'}</span>
+@@ -727,6 +765,13 @@ export default function AdminTeamsTab({ activeTab }) {
+         entityName={banModalConfig.target?.name || 'Team'}
+         isBanning={banModalConfig.isBanning}
+       />
++
++      {fullImageUrl && (
++        <ImageModal 
++          imageUrl={fullImageUrl} 
++          onClose={() => setFullImageUrl(null)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/features/admin/DetailsInfoModal.jsx b/frontend/src/features/admin/DetailsInfoModal.jsx
+index a145b99..6dcbf21 100644
+--- a/frontend/src/features/admin/DetailsInfoModal.jsx
++++ b/frontend/src/features/admin/DetailsInfoModal.jsx
+@@ -1,22 +1,35 @@
++import { useState } from 'react';
++import ImageModal from '../../components/ImageModal';
++
+ export default function DetailsInfoModal({ isOpen, onClose, data, type }) {
++  const [fullImageUrl, setFullImageUrl] = useState(null);
+   if (!isOpen || !data) return null;
+ 
+   const isTeam = type === 'team';
+ 
+   return (
+-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-slate-200 dark:border-slate-800 relative animate-in fade-in zoom-in-95 duration-200">
++    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
++      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
++      <div 
++        className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800"
++        onClick={(e) => e.stopPropagation()}
++      >
+         <button
+           onClick={onClose}
+-          className="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold"
++          className="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold z-10"
+         >
+           Γ£ò
+         </button>
+ 
+-        <div className="flex items-center gap-3 mb-6">
+-          <span className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold shrink-0">
+-            {isTeam ? '≡ƒæÑ' : '≡ƒæñ'}
+-          </span>
++        <div className="p-8 pb-0 flex items-center gap-3 mb-6">
++          <div 
++            className={`w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold shrink-0 overflow-hidden ${!isTeam && data.avatar_url ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
++            onClick={() => {
++              if (!isTeam && data.avatar_url) setFullImageUrl(data.avatar_url);
++            }}
++          >
++            {isTeam ? '≡ƒæÑ' : (!isTeam && data.avatar_url ? <img src={data.avatar_url} alt="Profile" className="w-full h-full object-cover" /> : '≡ƒæñ')}
++          </div>
+           <div className="min-w-0">
+             <h2 className="text-2xl font-black text-slate-900 dark:text-white break-words leading-tight">
+               {isTeam ? data.name : data.name || data.email}
+@@ -27,7 +40,8 @@ export default function DetailsInfoModal({ isOpen, onClose, data, type }) {
+           </div>
+         </div>
+ 
+-        {isTeam ? (
++        <div className="px-8 pb-8 overflow-y-auto custom-scrollbar">
++          {isTeam ? (
+           <div className="space-y-6">
+             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+               <div className="min-w-0">
+@@ -69,11 +83,23 @@ export default function DetailsInfoModal({ isOpen, onClose, data, type }) {
+                       key={m.id || idx}
+                       className="p-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between"
+                     >
+-                      <div className="min-w-0 pr-2">
+-                        <div className="font-bold text-slate-900 dark:text-white text-sm truncate">
+-                          {m.name || 'Unnamed Member'} {data.leader_id === m.id && '≡ƒææ'}
++                      <div className="min-w-0 pr-2 flex items-center gap-3">
++                        {m.avatar_url ? (
++                          <img 
++                            src={m.avatar_url} 
++                            alt="Avatar" 
++                            className="w-8 h-8 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0" 
++                            onClick={() => setFullImageUrl(m.avatar_url)} 
++                          />
++                        ) : (
++                          <span className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs shrink-0">≡ƒæñ</span>
++                        )}
++                        <div className="min-w-0">
++                          <div className="font-bold text-slate-900 dark:text-white text-sm truncate">
++                            {m.name || 'Unnamed Member'} {data.leader_id === m.id && '≡ƒææ'}
++                          </div>
++                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{m.email}</div>
+                         </div>
+-                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{m.email}</div>
+                       </div>
+                       <div className="text-right shrink-0">
+                         {m.batch_session && (
+@@ -147,6 +173,13 @@ export default function DetailsInfoModal({ isOpen, onClose, data, type }) {
+           </button>
+         </div>
+       </div>
++      </div>
++      {fullImageUrl && (
++        <ImageModal 
++          imageUrl={fullImageUrl} 
++          onClose={() => setFullImageUrl(null)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/features/team/InviteMentorModal.jsx b/frontend/src/features/team/InviteMentorModal.jsx
+index b9bc198..50bdcaf 100644
+--- a/frontend/src/features/team/InviteMentorModal.jsx
++++ b/frontend/src/features/team/InviteMentorModal.jsx
+@@ -1,12 +1,14 @@
+ import { useState, useEffect } from 'react';
+ import { API_URL } from '../../config';
+ import { toast } from 'sonner';
++import ImageModal from '../../components/ImageModal';
+ 
+ export default function InviteMentorModal({ isOpen, onClose, teamId }) {
+   const [mentors, setMentors] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [invitingId, setInvitingId] = useState(null);
+   const [mentorLimit, setMentorLimit] = useState(3);
++  const [fullImageUrl, setFullImageUrl] = useState(null);
+ 
+   useEffect(() => {
+     if (isOpen) {
+@@ -109,9 +111,18 @@ export default function InviteMentorModal({ isOpen, onClose, teamId }) {
+                 return (
+                   <div key={mentor.id} className={`flex items-center justify-between p-4 rounded-xl border ${isFull ? 'bg-slate-50 border-slate-200 opacity-60' : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm'}`}>
+                     <div className="flex items-center space-x-3">
+-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isFull ? 'bg-slate-400' : 'bg-gradient-to-br from-blue-600 to-indigo-700'}`}>
+-                        {mentor.name.charAt(0).toUpperCase()}
+-                      </div>
++                      {mentor.avatar_url ? (
++                        <img 
++                          src={mentor.avatar_url} 
++                          alt="Mentor Avatar" 
++                          className="w-10 h-10 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity" 
++                          onClick={() => setFullImageUrl(mentor.avatar_url)} 
++                        />
++                      ) : (
++                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${isFull ? 'bg-slate-400' : 'bg-gradient-to-br from-blue-600 to-indigo-700'}`}>
++                          {mentor.name.charAt(0).toUpperCase()}
++                        </div>
++                      )}
+                       <div>
+                         <p className={`font-bold ${isFull ? 'text-slate-600' : 'text-slate-900'}`}>{mentor.name}</p>
+                         <p className="text-xs text-slate-500">Mentoring {mentor.team_count}/{mentorLimit} teams</p>
+@@ -140,6 +151,12 @@ export default function InviteMentorModal({ isOpen, onClose, teamId }) {
+           )}
+         </div>
+       </div>
++      {fullImageUrl && (
++        <ImageModal 
++          imageUrl={fullImageUrl} 
++          onClose={() => setFullImageUrl(null)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/features/team/MemberInfoModal.jsx b/frontend/src/features/team/MemberInfoModal.jsx
+index 67f9944..ae4c0b3 100644
+--- a/frontend/src/features/team/MemberInfoModal.jsx
++++ b/frontend/src/features/team/MemberInfoModal.jsx
+@@ -1,6 +1,8 @@
+-import React from 'react';
++import React, { useState } from 'react';
++import ImageModal from '../../components/ImageModal';
+ 
+-export default function MemberInfoModal({ isOpen, onClose, member, isLeader = false }) {
++export default function MemberInfoModal({ isOpen, onClose, member, isLeader = false, isMentor = false }) {
++  const [showFullImage, setShowFullImage] = useState(false);
+   if (!isOpen || !member) return null;
+ 
+   const getInitial = (name, email) => {
+@@ -10,7 +12,7 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
++    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+       <div 
+         onClick={(e) => e.stopPropagation()} 
+         className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 relative border border-slate-100 dark:border-slate-800 animate-in zoom-in-95 duration-200"
+@@ -26,22 +28,33 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
+         </button>
+ 
+         <div className="flex flex-col items-center text-center mt-2">
+-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-500/25 mb-4">
+-            {getInitial(member.name, member.email)}
+-          </div>
++          {member.avatar_url ? (
++            <div 
++              className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg shadow-blue-500/25 mb-4 border-2 border-white dark:border-slate-800 cursor-pointer hover:opacity-90 transition-opacity"
++              onClick={() => setShowFullImage(true)}
++            >
++              <img src={member.avatar_url} alt={member.name || member.email} className="w-full h-full object-cover" />
++            </div>
++          ) : (
++            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-3xl shadow-lg shadow-blue-500/25 mb-4">
++              {getInitial(member.name, member.email)}
++            </div>
++          )}
+ 
+           <h3 className="text-2xl font-black text-slate-900 dark:text-white break-words">
+             {member.name || member.email}
+           </h3>
+-          <p className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 break-words">
+-            Student ID: {member.student_id && member.student_id !== 'N/A' ? member.student_id : 'Not provided'}
+-          </p>
+ 
+           {isLeader && (
+             <span className="mt-3 px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded-full text-xs font-black tracking-wide uppercase">
+               Team Leader
+             </span>
+           )}
++          {isMentor && (
++            <span className="mt-3 px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded-full text-xs font-black tracking-wide uppercase">
++              Mentor
++            </span>
++          )}
+         </div>
+ 
+         <div className="mt-8 space-y-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50">
+@@ -73,6 +86,12 @@ export default function MemberInfoModal({ isOpen, onClose, member, isLeader = fa
+           </button>
+         </div>
+       </div>
++      {showFullImage && member.avatar_url && (
++        <ImageModal 
++          imageUrl={member.avatar_url} 
++          onClose={() => setShowFullImage(false)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/pages/MentorDashboardPage.jsx b/frontend/src/pages/MentorDashboardPage.jsx
+index cce212a..a370c98 100644
+--- a/frontend/src/pages/MentorDashboardPage.jsx
++++ b/frontend/src/pages/MentorDashboardPage.jsx
+@@ -421,14 +421,25 @@ export default function MentorDashboardPage() {
+                           }}
+                           className="flex items-center space-x-3 p-3 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer hover:border-blue-300 hover:bg-blue-50/50 transition-colors"
+                         >
+-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+-                            {member.name.charAt(0).toUpperCase()}
+-                          </div>
+-                          <div className="min-w-0">
++                          {member.avatar_url ? (
++                            <img src={member.avatar_url} alt="Member Avatar" className="w-10 h-10 rounded-full object-cover shrink-0" />
++                          ) : (
++                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
++                              {member.name.charAt(0).toUpperCase()}
++                            </div>
++                          )}
++                          <div className="min-w-0 flex-1">
+                             <p className="text-sm font-bold text-slate-900 truncate">
+-                              {member.name} {member.id === team.leader_id && <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full ml-1 uppercase">Leader</span>}
++                              {member.name}
+                             </p>
+-                            <p className="text-xs text-slate-500 truncate">ID: {member.student_id !== 'N/A' ? member.student_id : member.email}</p>
++                            <div className="flex items-center justify-between mt-0.5">
++                              <p className="text-xs text-slate-500 truncate pr-2">ID: {member.student_id !== 'N/A' ? member.student_id : member.email}</p>
++                              {member.id === team.leader_id && (
++                                <span className="text-[9px] font-black text-amber-600 bg-amber-100/80 px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">
++                                  Leader
++                                </span>
++                              )}
++                            </div>
+                           </div>
+                         </div>
+                       ))}
+diff --git a/frontend/src/pages/ProfilePage.jsx b/frontend/src/pages/ProfilePage.jsx
+index 22203a2..c79dd21 100644
+--- a/frontend/src/pages/ProfilePage.jsx
++++ b/frontend/src/pages/ProfilePage.jsx
+@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
+ import { toast } from 'sonner';
+ import { useAuth } from '../contexts/AuthContext';
+ import NotificationDropdown from '../components/NotificationDropdown';
++import ImageModal from '../components/ImageModal';
+ 
+ export default function ProfilePage({ inDashboard = false }) {
+   const { currentUser, userProfile, setUserProfile } = useAuth();
+@@ -11,6 +12,8 @@ export default function ProfilePage({ inDashboard = false }) {
+   
+   const [saving, setSaving] = useState(false);
+   const [isEditing, setIsEditing] = useState(false);
++  const [uploadingImage, setUploadingImage] = useState(false);
++  const [showFullImage, setShowFullImage] = useState(false);
+   
+   // Data for View Mode
+   const [profileData, setProfileData] = useState({
+@@ -89,8 +92,8 @@ export default function ProfilePage({ inDashboard = false }) {
+       
+       if (res.ok && (data.status === 'success' || data.success)) {
+         toast.success('Profile updated successfully!');
+-        setUserProfile(formData); // Update context
+-        setProfileData(formData); // Update view mode data
++        setUserProfile(prev => ({ ...prev, ...formData })); // Preserve avatar_url
++        setProfileData(prev => ({ ...prev, ...formData }));
+         setIsEditing(false); // Switch back to view mode
+       } else {
+         const errMsg = data.errors ? Object.values(data.errors).flat()[0] : (data.message || 'Failed to update profile');
+@@ -104,6 +107,39 @@ export default function ProfilePage({ inDashboard = false }) {
+     }
+   };
+ 
++  const handleImageUpload = async (e) => {
++    const file = e.target.files[0];
++    if (!file) return;
++
++    const formData = new FormData();
++    formData.append('avatar', file);
++
++    setUploadingImage(true);
++    try {
++      const token = localStorage.getItem('token');
++      const res = await fetch(API_URL + '/api/v1/users/profile/avatar', {
++        method: 'POST',
++        headers: {
++          'Authorization': `Bearer ${token}`
++        },
++        body: formData
++      });
++
++      const data = await res.json();
++      if (res.ok && (data.status === 'success' || data.success)) {
++        toast.success('Profile picture updated!');
++        setUserProfile(prev => ({ ...prev, avatar_url: data.data.avatar_url }));
++        setProfileData(prev => ({ ...prev, avatar_url: data.data.avatar_url }));
++      } else {
++        toast.error(data.message || 'Failed to update picture');
++      }
++    } catch (err) {
++      toast.error('Network error occurred during upload.');
++    } finally {
++      setUploadingImage(false);
++    }
++  };
++
+   // Get initials for avatar
+   const getInitials = (name) => {
+     if (!name) return '?';
+@@ -136,8 +172,31 @@ export default function ProfilePage({ inDashboard = false }) {
+           <div className="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+           <div className="px-8 pb-8 flex flex-col sm:flex-row items-center sm:items-end justify-between -mt-16 gap-6">
+             <div className="flex flex-col sm:flex-row items-center gap-6">
+-              <div className="w-32 h-32 rounded-full border-4 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-4xl font-bold text-slate-400 dark:text-slate-500 shadow-md">
+-                {profileData.name ? getInitials(profileData.name) : '≡ƒæñ'}
++              <div className="relative group">
++                <div 
++                  className={`w-32 h-32 rounded-full border-4 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-4xl font-bold text-slate-400 dark:text-slate-500 shadow-md overflow-hidden relative ${profileData.avatar_url ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
++                  onClick={() => profileData.avatar_url && setShowFullImage(true)}
++                >
++                  {profileData.avatar_url ? (
++                    <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
++                  ) : (
++                    profileData.name ? getInitials(profileData.name) : '≡ƒæñ'
++                  )}
++                  {uploadingImage && (
++                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
++                      <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
++                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
++                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
++                      </svg>
++                    </div>
++                  )}
++                </div>
++                <label className="absolute bottom-0 right-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full cursor-pointer shadow-lg transition-colors group-hover:scale-110 duration-200">
++                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
++                    <path fillRule="evenodd" d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.69l-2.22-2.219a2.25 2.25 0 0 0-3.182 0l-1.44 1.439a2.25 2.25 0 0 1-3.182 0L5.682 8.36a2.25 2.25 0 0 0-3.182 0l-1.44 1.44Z" clipRule="evenodd" />
++                  </svg>
++                  <input type="file" className="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" onChange={handleImageUpload} disabled={uploadingImage} />
++                </label>
+               </div>
+               <div className="text-center sm:text-left mb-2 min-w-0 pr-4">
+                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white break-words">{profileData.name || 'Hacker'}</h1>
+@@ -179,6 +238,17 @@ export default function ProfilePage({ inDashboard = false }) {
+                     placeholder="John Doe" 
+                   />
+                 </div>
++
++                <div className="md:col-span-2 min-w-0">
++                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
++                  <input 
++                    type="email" 
++                    value={currentUser?.email || ''}
++                    disabled
++                    className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed outline-none font-medium" 
++                  />
++                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 ml-1">Email address cannot be changed.</p>
++                </div>
+                 
+                 <div className="min-w-0">
+                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Student ID</label>
+@@ -249,31 +319,73 @@ export default function ProfilePage({ inDashboard = false }) {
+           ) : (
+             /* View Mode */
+             <div className="animate-in fade-in duration-300">
+-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">Personal Details</h2>
+-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
++              <div className="flex items-center justify-between mb-8 border-b border-slate-100 dark:border-slate-800 pb-4">
++                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Personal Details</h2>
++              </div>
++              
++              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                 
+-                <div className="flex flex-col min-w-0">
+-                  <span className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Full Name</span>
+-                  <span className="text-lg font-medium text-slate-800 dark:text-slate-200 break-words">{profileData.name || <span className="text-slate-300 dark:text-slate-600 italic">Not set</span>}</span>
++                {/* Full Name */}
++                <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50">
++                  <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 transition-all">
++                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
++                  </div>
++                  <div className="flex flex-col min-w-0 justify-center h-12">
++                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-0.5 uppercase tracking-wider">Full Name</span>
++                    <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 break-words leading-tight">{profileData.name || <span className="text-slate-400 italic font-normal">Not set</span>}</span>
++                  </div>
+                 </div>
+-                
+-                <div className="flex flex-col min-w-0">
+-                  <span className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Student ID</span>
+-                  <span className="text-lg font-medium text-slate-800 dark:text-slate-200 break-words">{profileData.student_id || <span className="text-slate-300 dark:text-slate-600 italic">Not set</span>}</span>
++
++                {/* Email Address */}
++                <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50">
++                  <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-all">
++                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
++                  </div>
++                  <div className="flex flex-col min-w-0 justify-center h-12">
++                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-0.5 uppercase tracking-wider">Email Address</span>
++                    <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 break-words leading-tight">{currentUser?.email || <span className="text-slate-400 italic font-normal">Not set</span>}</span>
++                  </div>
+                 </div>
+ 
+-                <div className="flex flex-col min-w-0">
+-                  <span className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Batch / Session</span>
+-                  <span className="text-lg font-medium text-slate-800 dark:text-slate-200">
+-                    <span className="inline-block px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full font-semibold border border-indigo-100 dark:border-indigo-800/50 break-words">
+-                      {profileData.batch_session || <span className="text-indigo-300 dark:text-indigo-500/50 italic">Not set</span>}
++                {/* Student ID */}
++                <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50">
++                  <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 transition-all">
++                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" /></svg>
++                  </div>
++                  <div className="flex flex-col min-w-0 justify-center h-12">
++                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-0.5 uppercase tracking-wider">Student ID</span>
++                    <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 break-words leading-tight">{profileData.student_id || <span className="text-slate-400 italic font-normal">Not set</span>}</span>
++                  </div>
++                </div>
++
++                {/* Batch / Session */}
++                <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50">
++                  <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/40 transition-all">
++                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>
++                  </div>
++                  <div className="flex flex-col min-w-0 justify-center h-12">
++                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-0.5 uppercase tracking-wider">Batch / Session</span>
++                    <span className="text-lg font-semibold text-slate-800 dark:text-slate-200">
++                      {profileData.batch_session ? (
++                        <span className="inline-flex items-center px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 break-words shadow-sm text-base">
++                          {profileData.batch_session}
++                        </span>
++                      ) : (
++                        <span className="text-slate-400 italic font-normal">Not set</span>
++                      )}
+                     </span>
+-                  </span>
++                  </div>
+                 </div>
+ 
+-                <div className="flex flex-col min-w-0">
+-                  <span className="text-sm font-semibold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Phone Number</span>
+-                  <span className="text-lg font-medium text-slate-800 dark:text-slate-200 break-words">{profileData.phone_number || <span className="text-slate-300 dark:text-slate-600 italic">Not set</span>}</span>
++                {/* Phone Number */}
++                <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border border-transparent hover:border-slate-100 dark:hover:border-slate-700/50">
++                  <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/40 transition-all">
++                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.48-4.08-7.076-6.975l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
++                  </div>
++                  <div className="flex flex-col min-w-0 justify-center h-12">
++                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-0.5 uppercase tracking-wider">Phone Number</span>
++                    <span className="text-lg font-semibold text-slate-800 dark:text-slate-200 break-words leading-tight">{profileData.phone_number || <span className="text-slate-400 italic font-normal">Not set</span>}</span>
++                  </div>
+                 </div>
+ 
+               </div>
+@@ -281,6 +393,14 @@ export default function ProfilePage({ inDashboard = false }) {
+           )}
+         </div>
+       </main>
++
++      {/* Full Image Modal */}
++      {showFullImage && profileData.avatar_url && (
++        <ImageModal 
++          imageUrl={profileData.avatar_url} 
++          onClose={() => setShowFullImage(false)} 
++        />
++      )}
+     </div>
+   );
+ }
+diff --git a/frontend/src/pages/TeamPage.jsx b/frontend/src/pages/TeamPage.jsx
+index 1365559..cf4c86e 100644
+--- a/frontend/src/pages/TeamPage.jsx
++++ b/frontend/src/pages/TeamPage.jsx
+@@ -291,12 +291,6 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
+                 <div>
+                   <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{team.name}</h2>
+                   <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">Created on {new Date(team.created_at).toLocaleDateString()}</p>
+-                  {team.mentor_id && (
+-                    <p className="text-blue-600 font-bold mt-1 text-sm sm:text-base flex items-center gap-1">
+-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+-                      Mentored by: {team.mentor_name}
+-                    </p>
+-                  )}
+                 </div>
+                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+                   {team.team_code && (
+@@ -369,6 +363,54 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
+               </div>
+ 
+               <div className="space-y-4">
++                {team.mentor_id && (
++                  <div className="mb-8">
++                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-1 mb-4">
++                      <h3 className="text-lg font-bold text-slate-900">Team Mentor</h3>
++                      <span className="text-xs font-semibold text-slate-400">Click to view full details</span>
++                    </div>
++                    <div
++                      onClick={() => setSelectedMember({
++                        id: team.mentor_id,
++                        name: team.mentor_name,
++                        email: team.mentor_email,
++                        student_id: team.mentor_student_id,
++                        batch_session: team.mentor_batch_session,
++                        phone_number: team.mentor_phone_number,
++                        avatar_url: team.mentor_avatar_url,
++                        isMentor: true
++                      })}
++                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-blue-300 hover:shadow-md cursor-pointer group"
++                    >
++                      <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 w-full">
++                        {team.mentor_avatar_url ? (
++                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden shadow-sm shrink-0 border border-slate-200 dark:border-slate-700">
++                            <img src={team.mentor_avatar_url} alt={team.mentor_name || team.mentor_email} className="w-full h-full object-cover" />
++                          </div>
++                        ) : (
++                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
++                            {(team.mentor_name || team.mentor_email)?.charAt(0).toUpperCase()}
++                          </div>
++                        )}
++                        <div className="min-w-0 flex-1">
++                          <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words whitespace-normal">
++                            {team.mentor_name || team.mentor_email}
++                          </p>
++                          <p className="text-xs sm:text-sm font-semibold text-slate-500 break-words whitespace-normal">
++                            Student ID: <span className="text-slate-700 font-bold">{team.mentor_student_id && team.mentor_student_id !== 'N/A' ? team.mentor_student_id : 'Not provided'}</span>
++                          </p>
++                        </div>
++                      </div>
++                      <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto shrink-0 mt-2 sm:mt-0">
++                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all flex items-center gap-1">
++                          <span>View Info</span>
++                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
++                        </span>
++                      </div>
++                    </div>
++                  </div>
++                )}
++
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-1">
+                   <h3 className="text-lg font-bold text-slate-900">Team Members</h3>
+                   <span className="text-xs font-semibold text-slate-400">Click any member to view full details</span>
+@@ -381,9 +423,15 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
+                       className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-blue-300 hover:shadow-md cursor-pointer group"
+                     >
+                       <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 w-full">
+-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
+-                          {(member.name || member.email).charAt(0).toUpperCase()}
+-                        </div>
++                        {member.avatar_url ? (
++                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden shadow-sm shrink-0 border border-slate-200 dark:border-slate-700">
++                            <img src={member.avatar_url} alt={member.name || member.email} className="w-full h-full object-cover" />
++                          </div>
++                        ) : (
++                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
++                            {(member.name || member.email).charAt(0).toUpperCase()}
++                          </div>
++                        )}
+                         <div className="min-w-0 flex-1">
+                           <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words whitespace-normal">
+                             {member.name || member.email}

@@ -7,6 +7,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import { adminCache } from './adminCache';
 import BanModal from './BanModal';
 import { useAuth } from '../../contexts/AuthContext';
+import ImageModal from '../../components/ImageModal';
 
 export default function AdminMembersTab({ setParentActiveTab }) {
   const { socket } = useAuth();
@@ -27,6 +28,8 @@ export default function AdminMembersTab({ setParentActiveTab }) {
   // Modals state
   const [detailsModalData, setDetailsModalData] = useState(null);
   const [editModalData, setEditModalData] = useState(null);
+  const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [imageErrors, setImageErrors] = useState({});
 
   // Menu open state
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -345,11 +348,26 @@ export default function AdminMembersTab({ setParentActiveTab }) {
           </td>
         )}
         <td
-          className="py-3 px-4 cursor-pointer"
+          className="py-3 px-4 flex items-center gap-3 cursor-pointer"
           onClick={() => setDetailsModalData(m)}
         >
-          <div className="font-bold text-slate-900">{m.name || 'Unnamed Member'}</div>
-          <div className="text-xs text-slate-500">{m.email}</div>
+          {m.avatar_url && !imageErrors[m.id] ? (
+            <img 
+              src={m.avatar_url} 
+              alt="Avatar" 
+              className="w-10 h-10 rounded-full object-cover shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={(e) => { e.stopPropagation(); setFullImageUrl(m.avatar_url); }}
+              onError={() => setImageErrors(prev => ({...prev, [m.id]: true}))}
+            />
+          ) : (
+            <span className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-lg shrink-0">
+              👤
+            </span>
+          )}
+          <div className="min-w-0">
+            <div className="font-bold text-slate-900 truncate">{m.name || 'Unnamed Member'}</div>
+            <div className="text-xs text-slate-500 truncate">{m.email}</div>
+          </div>
         </td>
         <td className="py-3 px-4 font-mono text-slate-700">{m.student_id || '—'}</td>
         <td className="py-3 px-4 text-slate-700">{m.batch_session || '—'}</td>
@@ -694,6 +712,13 @@ export default function AdminMembersTab({ setParentActiveTab }) {
         entityName={banModalConfig.target?.email || 'Member'}
         isBanning={banModalConfig.isBanning}
       />
+
+      {fullImageUrl && (
+        <ImageModal 
+          imageUrl={fullImageUrl} 
+          onClose={() => setFullImageUrl(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -68,3 +68,27 @@ export const searchUsers = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+export const uploadAvatar = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = (req as any).user?.id;
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+        }
+
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+        }
+
+        const avatarUrl = await userService.uploadAvatarToCloudinary(userId, file);
+
+        res.status(200).json({
+            status: 'success',
+            success: true,
+            message: 'Avatar uploaded successfully',
+            data: { avatar_url: avatarUrl }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
