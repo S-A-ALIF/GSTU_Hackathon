@@ -386,6 +386,10 @@ export const updateMember = async (req: Request, res: Response) => {
             });
         }
 
+        if (role !== undefined) {
+            req.app.locals.io?.to(`user_${id}`).emit('roleUpdated', { role });
+        }
+
         req.app.locals.io?.emit('statsUpdated');
 
         res.status(200).json({

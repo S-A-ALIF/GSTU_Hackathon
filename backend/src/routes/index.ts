@@ -9,6 +9,7 @@ import problemRoutes from '../feats/problem/problem.routes';
 import ruleRoutes from '../feats/rules/rules.routes';
 import mentorRoutes from '../feats/mentor/mentor.routes';
 import feedbackRoutes from '../feats/feedback/feedback.routes';
+import chatRoutes from '../feats/chat/chat.routes';
 
 const router = Router();
 
@@ -46,5 +47,6 @@ router.use('/problems', problemRoutes);
 router.use('/rules', ruleRoutes);
 router.use('/mentors', mentorRoutes);
 router.use('/feedback', feedbackRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;

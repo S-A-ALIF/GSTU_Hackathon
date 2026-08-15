@@ -83,6 +83,8 @@ const server = app.listen(PORT, () => {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT DEFAULT NULL;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS ban_reason TEXT DEFAULT NULL;
+        ALTER TABLE team_chat_messages ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT NULL;
+        ALTER TABLE committee_chat_messages ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT NULL;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS team_code VARCHAR(20) UNIQUE DEFAULT NULL;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS is_full BOOLEAN DEFAULT false;
         ALTER TABLE teams ADD COLUMN IF NOT EXISTS repo_url VARCHAR(500) DEFAULT NULL;
@@ -99,6 +101,21 @@ const server = app.listen(PORT, () => {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(team_id, user_id)
         );
+        CREATE TABLE IF NOT EXISTS team_chat_messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+            sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS team_chat_reads (
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+            last_read_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, team_id)
+        );
+
         CREATE TABLE IF NOT EXISTS problems (
             id SERIAL PRIMARY KEY,
             track VARCHAR(255) NOT NULL,
@@ -127,6 +144,17 @@ const server = app.listen(PORT, () => {
             severity VARCHAR(20) DEFAULT 'info',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS committee_chat_messages (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            message TEXT NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS committee_chat_reads (
+            user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+            last_read_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id)
         );
         INSERT INTO platform_settings (key, value) VALUES ('registration_open', 'true') ON CONFLICT (key) DO NOTHING;
         INSERT INTO platform_settings (key, value) VALUES ('workspace_open', 'false') ON CONFLICT (key) DO NOTHING;
@@ -163,6 +191,33 @@ app.locals.io = io;
 
 io.on('connection', (socket) => {
     console.log('⚡ Client connected to WebSocket');
+    
+    // Authenticate socket
+    socket.on('authenticate', (userId) => {
+        socket.join(`user_${userId}`);
+        
+        // Allow joining committee chat room if authorized
+        socket.on('joinCommitteeChat', () => {
+            socket.join('committee_chat');
+        });
+        
+        socket.on('leaveCommitteeChat', () => {
+            socket.leave('committee_chat');
+        });
+    });
+
+    socket.on('joinTeamChat', (teamId) => {
+        const roomName = `team_${teamId}`;
+        socket.join(roomName);
+        console.log(`🔌 Socket joined team room: ${roomName}`);
+    });
+
+    socket.on('leaveTeamChat', (teamId) => {
+        const roomName = `team_${teamId}`;
+        socket.leave(roomName);
+        console.log(`🔌 Socket left room: ${roomName}`);
+    });
+
     socket.on('disconnect', () => {
         console.log('⚡ Client disconnected from WebSocket');
     });

@@ -10,9 +10,11 @@ import SettingsPage from './SettingsPage';
 import MemberInfoModal from '../features/team/MemberInfoModal';
 import ProblemsPage from './ProblemsPage';
 import Rules from '../features/landing/Rules';
+import ChatPage from './ChatPage';
+import CommitteeChatPage from './CommitteeChatPage';
 
 export default function MentorDashboardPage() {
-  const { currentUser, logout, feedbackOpen, problemsOpen } = useAuth();
+  const { currentUser, logout, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('hackathon_mentor_tab') || 'dashboard';
@@ -41,6 +43,7 @@ export default function MentorDashboardPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const menuRef = useRef(null);
 
   // Rejection modal state
@@ -195,6 +198,24 @@ export default function MentorDashboardPage() {
       )
     },
     {
+      id: 'chat',
+      label: 'Team Chat',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      )
+    },
+    {
+      id: 'committee_chat',
+      label: 'Event Committee',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      )
+    },
+    {
       id: 'problems',
       label: 'Problem Statement',
       icon: (
@@ -225,7 +246,7 @@ export default function MentorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col h-[100dvh] overflow-hidden">
       {/* Feedback Modal */}
       <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
       
@@ -309,17 +330,17 @@ export default function MentorDashboardPage() {
       </nav>
 
       {/* Main Body: Left Sidebar + Right Active Tab Content */}
-      <div className="flex-grow flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex-grow flex flex-col xs:flex-row h-[calc(100vh-73px)] overflow-hidden">
         {/* Left Fixed Sidebar */}
         <aside 
-          className={`bg-slate-900 text-white border-b md:border-b-0 md:border-r border-slate-800 p-2 md:p-4 flex flex-col justify-between shrink-0 relative transition-all duration-300 md:h-full w-full ${
-            isSidebarOpen ? 'md:w-64' : 'md:w-20'
+          className={`bg-slate-900 text-white border-b xs:border-b-0 xs:border-r border-slate-800 p-2 xs:p-4 flex flex-col justify-between shrink-0 relative transition-all duration-300 xs:h-full w-full ${
+            isSidebarOpen ? 'xs:w-64' : 'xs:w-20'
           }`}
         >
           {/* Toggle Button */}
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="hidden md:flex absolute -right-3.5 top-6 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-7 h-7 rounded-full items-center justify-center shadow-lg transition-transform focus:outline-none z-50"
+            className="hidden xs:flex absolute -right-3.5 top-6 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-7 h-7 rounded-full items-center justify-center shadow-lg transition-transform focus:outline-none z-50"
             title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-300 ${!isSidebarOpen ? 'rotate-180' : ''}`}>
@@ -327,8 +348,8 @@ export default function MentorDashboardPage() {
             </svg>
           </button>
 
-          <div className="space-y-4 md:space-y-6 overflow-hidden">
-            <div className="hidden md:flex px-2 h-6 items-center">
+          <div className="space-y-4 xs:space-y-6 overflow-hidden">
+            <div className="hidden xs:flex px-2 h-6 items-center">
               {isSidebarOpen ? (
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-bold block truncate">
                   Mentor Workspace
@@ -338,38 +359,77 @@ export default function MentorDashboardPage() {
               )}
             </div>
 
-            <nav className="grid grid-cols-2 gap-1 md:flex md:flex-col md:space-y-2">
-              {navItems.map((item) => {
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    title={!isSidebarOpen ? item.label : undefined}
-                    className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-2 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    } ${!isSidebarOpen ? 'md:justify-center md:px-2' : ''} ${(item.id === 'problems' && !problemsOpen) ? 'opacity-50 line-through pointer-events-none' : ''}`}
-                  >
-                    <span className="shrink-0">{item.icon}</span>
-                    <span className={`truncate text-[10px] sm:text-xs md:text-sm ${!isSidebarOpen ? 'md:hidden' : ''}`}>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            <div className={`xs:block transition-all duration-300 overflow-hidden ${isMobileExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 xs:max-h-none xs:opacity-100'}`}>
+              <nav className="grid grid-cols-2 gap-1 xs:flex xs:flex-col xs:space-y-2 pb-2 xs:pb-0">
+                {navItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      title={!isSidebarOpen ? item.label : undefined}
+                      className={`flex flex-col xs:flex-row items-center justify-center xs:justify-start gap-1 xs:gap-3 px-2 py-2 xs:px-4 xs:py-3 rounded-xl font-semibold text-xs xs:text-sm transition-all relative ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      } ${!isSidebarOpen ? 'xs:justify-center xs:px-2' : ''} ${(item.id === 'problems' && !problemsOpen) ? 'opacity-50 line-through pointer-events-none' : ''}`}
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      <span className={`truncate text-[10px] sm:text-xs xs:text-sm ${!isSidebarOpen ? 'xs:hidden' : ''}`}>{item.label}</span>
+                      
+                      {item.id === 'chat' && unreadCounts?.total > 0 && isSidebarOpen && (
+                        <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                          {unreadCounts.total > 99 ? '99+' : unreadCounts.total}
+                        </span>
+                      )}
+                      {item.id === 'committee_chat' && unreadCounts?.committee > 0 && isSidebarOpen && (
+                        <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                          {unreadCounts.committee > 99 ? '99+' : unreadCounts.committee}
+                        </span>
+                      )}
+                      {!isSidebarOpen && item.id === 'chat' && unreadCounts?.total > 0 && (
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900 shadow-sm animate-pulse"></span>
+                      )}
+                      {!isSidebarOpen && item.id === 'committee_chat' && unreadCounts?.committee > 0 && (
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900 shadow-sm animate-pulse"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
           
           {isSidebarOpen && (
-            <div className="hidden md:block pt-6 border-t border-slate-800 mt-6 px-2">
+            <div className="hidden xs:block pt-6 border-t border-slate-800 mt-6 px-2">
               <p className="text-xs text-slate-400 truncate">GSTU CSE Hackathon</p>
               <p className="text-xs font-bold text-slate-300 mt-0.5 truncate">2026 Edition</p>
             </div>
           )}
+
+          {/* Mobile Sidebar Toggle Button */}
+          <div className="xs:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 z-20">
+            <button
+              onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+              className="w-12 h-6 bg-slate-900 border-b border-l border-r border-slate-700 rounded-b-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 shadow-md transition-colors"
+              title={isMobileExpanded ? 'Retract Menu' : 'Expand Menu'}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className={`w-4 h-4 transition-transform duration-300 ${isMobileExpanded ? 'rotate-180' : ''}`}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
         </aside>
 
         {/* Right Content Area */}
-        <main className="flex-grow p-4 sm:p-6 lg:p-12 overflow-y-auto w-full h-full">
+        <main className={`flex-grow w-full h-full flex flex-col ${(activeTab === 'chat' || activeTab === 'committee_chat') ? 'min-h-0 overflow-hidden !p-2 sm:!p-4 lg:!p-8' : 'overflow-y-auto p-4 sm:p-6 lg:p-12'}`}>
           {activeTab === 'problems' && (
             problemsOpen ? <ProblemsPage inDashboard={true} /> : 
             <div className="flex flex-col items-center justify-center h-full text-slate-500 mt-20">
@@ -377,6 +437,9 @@ export default function MentorDashboardPage() {
               <p className="mt-2 text-center max-w-sm">The problem statement will be revealed once the hackathon officially starts.</p>
             </div>
           )}
+
+          {activeTab === 'chat' && <ChatPage inDashboard={true} onBack={() => setActiveTab('dashboard')} />}
+          {activeTab === 'committee_chat' && <CommitteeChatPage inDashboard={true} onBack={() => setActiveTab('dashboard')} />}
 
           {activeTab === 'dashboard' && (
             <div className="max-w-7xl mx-auto space-y-12">
@@ -459,6 +522,7 @@ export default function MentorDashboardPage() {
         </section>
             </div>
           )}
+          {/* activeTab === 'chat' wrapper removed to prevent duplicate render */}
           {activeTab === 'rules' && <Rules inDashboard={true} />}
           {activeTab === 'profile' && <ProfilePage inDashboard={true} />}
           {activeTab === 'settings' && <SettingsPage />}

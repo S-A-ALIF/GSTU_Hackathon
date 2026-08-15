@@ -98,6 +98,14 @@ const initAllTables = async () => {
                 status VARCHAR(20) DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS team_chat_messages (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
+                sender_id UUID REFERENCES users(id) ON DELETE SET NULL,
+                message TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `);
 
         console.log("4️⃣ Creating 'notifications' table...");

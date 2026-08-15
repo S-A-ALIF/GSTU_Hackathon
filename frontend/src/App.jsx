@@ -15,6 +15,7 @@ import ProblemsPage from './pages/ProblemsPage';
 import RulesPage from './pages/RulesPage';
 import AdminPage from './pages/AdminPage';
 import MentorDashboardPage from './pages/MentorDashboardPage';
+import ChatPage from './pages/ChatPage';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/rules" element={<ProtectedRoute><RulesPage /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
               <Route path="/mentor" element={<ProtectedRoute requiredRole="mentor"><MentorDashboardPage /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             </Routes>
           </BrowserRouter>
         </ErrorBoundary>

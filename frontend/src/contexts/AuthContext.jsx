@@ -18,6 +18,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [unreadCounts, setUnreadCounts] = useState({ total: 0, teams: {}, committee: 0 });
   const [loading, setLoading] = useState(true);
   const [rawRegistrationOpen, setRawRegistrationOpen] = useState(false);
   const [regOverride, setRegOverride] = useState(false);
@@ -178,6 +179,132 @@ export function AuthProvider({ children }) {
     };
   }, [currentUser?.id]);
 
+  // Unread chat messages management
+  const fetchUnreadCounts = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_URL + '/api/v1/chat/unread', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setUnreadCounts(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching unread counts:', err);
+    }
+  };
+
+  const markTeamAsRead = async (teamId) => {
+    if (!currentUser?.id || !teamId) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/v1/chat/read/${teamId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        setUnreadCounts(prev => {
+          const newTeams = { ...prev.teams };
+          const teamUnread = newTeams[teamId] || 0;
+          delete newTeams[teamId];
+          return {
+            total: Math.max(0, prev.total - teamUnread),
+            teams: newTeams
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Error marking team as read:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      // Authenticate socket for targeted notifications
+      socket.emit('authenticate', currentUser.id);
+      
+      // Fetch initial unread counts
+      fetchUnreadCounts();
+
+      // If user is admin or mentor, fetch committee unread counts and join room
+      if (currentUser.role === 'admin' || currentUser.role === 'mentor') {
+        socket.emit('joinCommitteeChat');
+        
+        const fetchCommitteeUnread = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(API_URL + '/api/v1/chat/committee/unread', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              setUnreadCounts(prev => ({ ...prev, committee: data.data.unread }));
+            }
+          } catch (err) {
+            console.error('Error fetching committee unread:', err);
+          }
+        };
+        fetchCommitteeUnread();
+      }
+
+      // Handle socket reconnection
+      const handleConnect = () => {
+        socket.emit('authenticate', currentUser.id);
+        if (currentUser.role === 'admin' || currentUser.role === 'mentor') {
+          socket.emit('joinCommitteeChat');
+        }
+      };
+      
+      socket.on('connect', handleConnect);
+
+      // Listen for unread message updates globally
+      const handleUnreadUpdate = ({ team_id }) => {
+        setUnreadCounts(prev => {
+          const currentCount = prev.teams[team_id] || 0;
+          return {
+            ...prev,
+            total: prev.total + 1,
+            teams: {
+              ...prev.teams,
+              [team_id]: currentCount + 1
+            }
+          };
+        });
+      };
+
+      const handleCommitteeUnreadUpdate = () => {
+        setUnreadCounts(prev => ({
+          ...prev,
+          committee: (prev.committee || 0) + 1
+        }));
+      };
+
+      const handleRoleUpdated = (data) => {
+        setCurrentUser(prev => prev ? { ...prev, role: data.role } : null);
+        if (data.role === 'admin' || data.role === 'mentor') {
+          socket.emit('joinCommitteeChat');
+        } else {
+          socket.emit('leaveCommitteeChat');
+          setUnreadCounts(prev => ({ ...prev, committee: 0 }));
+        }
+      };
+
+      socket.on('unreadMessageUpdate', handleUnreadUpdate);
+      socket.on('unreadCommitteeMessageUpdate', handleCommitteeUnreadUpdate);
+      socket.on('roleUpdated', handleRoleUpdated);
+
+      return () => {
+        socket.off('connect', handleConnect);
+        socket.off('unreadMessageUpdate', handleUnreadUpdate);
+        socket.off('unreadCommitteeMessageUpdate', handleCommitteeUnreadUpdate);
+        socket.off('roleUpdated', handleRoleUpdated);
+      };
+    }
+  }, [currentUser?.id]);
+
   useEffect(() => {
     // Check for existing token and verify with server on load
     const verifyUser = async () => {
@@ -308,7 +435,13 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ currentUser, userProfile, setUserProfile, login, register, logout, registrationOpen, workspaceOpen, problemsOpen, feedbackOpen, regStartTime, regEndTime, hackStartTime, hackEndTime, isSubmissionOpen, fetchPlatformSettings }}>
+    <AuthContext.Provider value={{ 
+      currentUser, userProfile, setUserProfile, login, register, logout, 
+      registrationOpen, workspaceOpen, problemsOpen, feedbackOpen, 
+      regStartTime, regEndTime, hackStartTime, hackEndTime, isSubmissionOpen, 
+      fetchPlatformSettings,
+      unreadCounts, setUnreadCounts, fetchUnreadCounts, markTeamAsRead
+    }}>
       {children}
     </AuthContext.Provider>
   );

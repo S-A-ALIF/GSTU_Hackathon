@@ -11,10 +11,11 @@ import ProfilePage from './ProfilePage';
 import { toast } from 'sonner';
 import SettingsPage from './SettingsPage';
 import QnAPage from './QnAPage';
+import ChatPage from './ChatPage';
 import BanBanner from '../components/BanBanner';
 
 export default function DashboardPage() {
-  const { currentUser, userProfile, logout, workspaceOpen, problemsOpen, feedbackOpen, fetchPlatformSettings } = useAuth();
+  const { currentUser, userProfile, logout, workspaceOpen, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('hackathon_active_tab') || 'team';
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -93,6 +95,15 @@ export default function DashboardPage() {
       )
     },
     {
+      id: 'chat',
+      label: 'Team Chat',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      )
+    },
+    {
       id: 'project',
       label: 'Project Workspace',
       icon: (
@@ -132,7 +143,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col h-[100dvh] overflow-hidden">
       <nav className="bg-slate-900 text-white py-4 px-6 lg:px-12 flex justify-between items-center shadow-md relative z-50 shrink-0">
         <Link to="/" className="text-2xl font-black tracking-tighter hover:opacity-80 transition-opacity">
           GSTU<span className="text-blue-500">Hackathon</span>
@@ -218,15 +229,15 @@ export default function DashboardPage() {
         </div>
       </nav>
 
-      <div className="flex-grow flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex-grow flex flex-col xs:flex-row h-[calc(100vh-73px)] overflow-hidden">
         <aside 
-          className={`bg-slate-900 text-white border-b md:border-b-0 md:border-r border-slate-800 p-2 md:p-4 flex flex-col justify-between shrink-0 relative transition-all duration-300 md:h-full w-full ${
-            isSidebarOpen ? 'md:w-64' : 'md:w-20'
+          className={`bg-slate-900 text-white border-b xs:border-b-0 xs:border-r border-slate-800 p-2 xs:p-4 flex flex-col justify-between shrink-0 relative transition-all duration-300 xs:h-full w-full ${
+            isSidebarOpen ? 'xs:w-64' : 'xs:w-20'
           }`}
         >
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="hidden md:flex absolute -right-3.5 top-6 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-7 h-7 rounded-full items-center justify-center shadow-lg transition-transform focus:outline-none z-50"
+            className="hidden xs:flex absolute -right-3.5 top-6 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-7 h-7 rounded-full items-center justify-center shadow-lg transition-transform focus:outline-none z-50"
             title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
           >
             <svg 
@@ -241,8 +252,8 @@ export default function DashboardPage() {
             </svg>
           </button>
 
-          <div className="space-y-4 md:space-y-6 overflow-hidden">
-            <div className="hidden md:flex px-2 h-6 items-center">
+          <div className="space-y-4 xs:space-y-6 overflow-hidden">
+            <div className="hidden xs:flex px-2 h-6 items-center">
               {isSidebarOpen ? (
                 <span className="text-xs uppercase tracking-widest text-slate-400 font-bold block truncate">
                   Hacker Workspace
@@ -252,52 +263,95 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <nav className="flex overflow-x-auto gap-2 md:flex-col md:gap-0 md:space-y-2 pb-2 md:pb-0 hide-scrollbar w-full">
-              {navItems.map((item) => {
-                const isActive = activeTab === item.id;
-                
-                const isBannedLock = userProfile?.isBanned && ['project', 'problems'].includes(item.id);
-                const isDisabled = isBannedLock ||
-                                   (item.id === 'project' && !workspaceOpen) || 
-                                   (item.id === 'problems' && !problemsOpen);
+            <div className={`xs:block transition-all duration-300 overflow-hidden ${isMobileExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 xs:max-h-none xs:opacity-100'}`}>
+              <nav className="grid grid-cols-2 gap-1 xs:flex xs:flex-col xs:space-y-2 pb-2 xs:pb-0 hide-scrollbar w-full">
+                {navItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  
+                  const isBannedLock = userProfile?.isBanned && ['project', 'problems'].includes(item.id);
+                  const isDisabled = isBannedLock ||
+                                     (item.id === 'project' && !workspaceOpen) || 
+                                     (item.id === 'problems' && !problemsOpen);
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => !isDisabled && setActiveTab(item.id)}
-                    disabled={isDisabled}
-                    title={!isSidebarOpen ? item.label : undefined}
-                    className={`shrink-0 flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-3 px-3 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all ${
-                      isDisabled 
-                        ? 'text-slate-600 cursor-not-allowed opacity-50 bg-transparent'
-                        : isActive
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    } ${!isSidebarOpen ? 'md:justify-center md:px-2' : ''}`}
-                  >
-                    <span className="shrink-0">{item.icon}</span>
-                    <span className={`truncate text-[10px] sm:text-xs md:text-sm ${!isSidebarOpen ? 'md:hidden' : ''}`}>{item.label}</span>
-                    {isDisabled && isSidebarOpen && (
-                      <span className="ml-auto text-slate-500 text-xs">🔒</span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => !isDisabled && setActiveTab(item.id)}
+                      disabled={isDisabled}
+                      title={!isSidebarOpen ? item.label : undefined}
+                      className={`shrink-0 flex flex-col xs:flex-row items-center justify-center xs:justify-start gap-1 xs:gap-3 px-3 py-2 xs:px-4 xs:py-3 rounded-xl font-semibold text-xs xs:text-sm transition-all relative ${
+                        isDisabled 
+                          ? 'text-slate-600 cursor-not-allowed opacity-50 bg-transparent'
+                          : isActive
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      } ${!isSidebarOpen ? 'xs:justify-center xs:px-2' : ''}`}
+                    >
+                      <span className="shrink-0">{item.icon}</span>
+                      <span className={`truncate text-[10px] sm:text-xs xs:text-sm ${!isSidebarOpen ? 'xs:hidden' : ''}`}>{item.label}</span>
+                      
+                      {/* Unread Message Badge */}
+                      {item.id === 'chat' && unreadCounts?.total > 0 && isSidebarOpen && (
+                        <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-in zoom-in">
+                          {unreadCounts.total > 99 ? '99+' : unreadCounts.total}
+                        </span>
+                      )}
+                      {!isSidebarOpen && item.id === 'chat' && unreadCounts?.total > 0 && (
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900 shadow-sm animate-pulse"></span>
+                      )}
+
+                      {/* Lock Icon */}
+                      {isDisabled && (
+                        <span className={`absolute ${!isSidebarOpen ? 'top-1 right-1' : 'right-4'}`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-slate-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                          </svg>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
           </div>
-
+          
           {isSidebarOpen && (
-            <div className="hidden md:block pt-6 border-t border-slate-800 mt-6 px-2">
+            <div className="hidden xs:block pt-6 border-t border-slate-800 mt-6 px-2">
               <p className="text-xs text-slate-400 truncate">GSTU CSE Hackathon</p>
               <p className="text-xs font-bold text-slate-300 mt-0.5 truncate">2026 Edition</p>
             </div>
           )}
+
+          {/* Mobile Sidebar Toggle Button */}
+          <div className="xs:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 z-20">
+            <button
+              onClick={() => setIsMobileExpanded(!isMobileExpanded)}
+              className="w-12 h-6 bg-slate-900 border-b border-l border-r border-slate-700 rounded-b-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 shadow-md transition-colors"
+              title={isMobileExpanded ? 'Retract Menu' : 'Expand Menu'}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className={`w-4 h-4 transition-transform duration-300 ${isMobileExpanded ? 'rotate-180' : ''}`}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+          </div>
         </aside>
 
         <main className="flex-grow overflow-y-auto w-full h-full flex flex-col bg-slate-50">
           <BanBanner />
-          <div className="p-4 sm:p-6 lg:p-12 flex-grow relative">
+          <div className={`flex-grow relative ${activeTab === 'chat' ? 'flex flex-col min-h-0 p-2 sm:p-4 lg:p-8' : 'p-4 sm:p-6 lg:p-12'}`}>
             {activeTab === 'team' && <TeamPage inDashboard={true} readOnly={userProfile?.isBanned} />}
+            {activeTab === 'chat' && (
+              <div className="flex-1 w-full min-h-0">
+                <ChatPage inDashboard={true} onBack={() => setActiveTab('team')} />
+              </div>
+            )}
           
             {activeTab === 'project' && (
               workspaceOpen ? <ProjectPage inDashboard={true} /> : 

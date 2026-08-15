@@ -14,6 +14,7 @@ import AdminMessagesTab from '../features/admin/AdminMessagesTab';
 import AdminFeedbackTab from '../features/admin/AdminFeedbackTab';
 import NotificationDropdown from '../components/NotificationDropdown';
 import ProfilePage from './ProfilePage';
+import CommitteeChatPage from './CommitteeChatPage';
 
 export default function AdminPage() {
   const { currentUser, logout } = useAuth();
@@ -71,7 +72,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-50 flex flex-col h-[100dvh] overflow-hidden">
       {/* Topbar: Only Notification and Profile */}
       <nav className="bg-slate-900 text-white py-3 sm:py-4 px-3 sm:px-6 lg:px-12 flex justify-between items-center shadow-md relative z-50 shrink-0">
         <Link to="/" className="text-xl sm:text-2xl font-black tracking-tighter hover:opacity-80 transition-opacity truncate mr-2">
@@ -145,14 +146,14 @@ export default function AdminPage() {
       </nav>
 
       {/* Main Body: Sidebar + Content */}
-      <div className="flex-grow flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex-grow flex flex-col xs:flex-row h-[calc(100vh-73px)] overflow-hidden">
         <AdminSidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
         />
 
-        <main className="flex-1 p-6 sm:p-10 overflow-y-auto overflow-x-hidden h-full">
-          <div className="max-w-7xl mx-auto">
+        <main className={`flex-1 overflow-x-hidden h-full ${activeTab === 'committee_chat' ? 'p-2 sm:p-4 lg:p-8 min-h-0 overflow-hidden flex flex-col' : 'p-6 sm:p-10 overflow-y-auto'}`}>
+          <div className={`mx-auto ${activeTab === 'committee_chat' ? 'h-full w-full' : 'max-w-7xl'}`}>
             {visitedTabs.dashboard && (
               <div className={activeTab === 'dashboard' ? 'block' : 'hidden'}>
                 <AdminDashboardTab setActiveTab={setActiveTab} />
@@ -196,6 +197,11 @@ export default function AdminPage() {
             {visitedTabs.feedback && (
               <div className={activeTab === 'feedback' ? 'block' : 'hidden'}>
                 <AdminFeedbackTab />
+              </div>
+            )}
+            {visitedTabs.committee_chat && (
+              <div className={activeTab === 'committee_chat' ? 'block h-full' : 'hidden'}>
+                <CommitteeChatPage inDashboard={true} onBack={() => setActiveTab('dashboard')} />
               </div>
             )}
             {visitedTabs.settings && (

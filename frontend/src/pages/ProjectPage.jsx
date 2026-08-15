@@ -181,7 +181,7 @@ export default function ProjectPage({ inDashboard = false }) {
   }
 
   return (
-    <div className={inDashboard ? 'py-2' : 'min-h-screen bg-slate-50 py-8 sm:py-12 px-3 sm:px-6 lg:px-8'}>
+    <div className={inDashboard ? 'py-2' : 'min-h-screen bg-slate-50 dark:bg-slate-900 py-8 sm:py-12 px-3 sm:px-6 lg:px-8'}>
       <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -193,8 +193,8 @@ export default function ProjectPage({ inDashboard = false }) {
                 <span>Project Workspace</span>
               </div>
             )}
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 break-words">Project Workspace</h1>
-            <p className="mt-1.5 sm:mt-2 text-sm sm:text-lg text-slate-600">Submit and manage your team's hackathon project.</p>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white break-words">Project Workspace</h1>
+            <p className="mt-1.5 sm:mt-2 text-sm sm:text-lg text-slate-600 dark:text-slate-400">Submit and manage your team's hackathon project.</p>
           </div>
 
           <div className="flex items-center gap-3 self-start sm:self-center">
@@ -223,7 +223,7 @@ export default function ProjectPage({ inDashboard = false }) {
         </div>
 
         {/* Tabs - Keep only Overview and Repository & Git */}
-        <div className="flex border-b border-slate-200 gap-4 sm:gap-6 overflow-x-auto">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 gap-4 sm:gap-6 overflow-x-auto">
           {[
             { id: 'overview', label: 'Overview' },
             { id: 'repository', label: 'Submission Links' }
@@ -233,8 +233,8 @@ export default function ProjectPage({ inDashboard = false }) {
               onClick={() => setActiveTab(tab.id)}
               className={`pb-3 sm:pb-4 font-bold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               {tab.label}
@@ -404,7 +404,7 @@ export default function ProjectPage({ inDashboard = false }) {
                   <button
                     onClick={handleSubmitProject}
                     disabled={submitting}
-                    className="w-full py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all text-xs sm:text-sm flex items-center justify-center gap-2"
+                    className="w-full py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95"
                   >
                     {submitting ? 'Submitting...' : 'Submit Project Repository'}
                   </button>

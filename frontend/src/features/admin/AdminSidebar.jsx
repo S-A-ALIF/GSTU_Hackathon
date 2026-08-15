@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { API_URL } from '../../config';
-import { socket } from '../../contexts/AuthContext';
+import { socket, useAuth } from '../../contexts/AuthContext';
 
 export default function AdminSidebar({ activeTab, setActiveTab }) {
+  const { unreadCounts } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const [unresolvedCount, setUnresolvedCount] = useState(0);
@@ -107,6 +108,16 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
       )
     },
     {
+      id: 'committee_chat',
+      label: 'Event Committee',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+      ),
+      count: unreadCounts?.committee || 0
+    },
+    {
       id: 'feedback',
       label: 'Feedback',
       icon: (
@@ -120,14 +131,14 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
 
   return (
     <aside 
-      className={`relative bg-slate-900 text-white flex flex-col justify-between p-2 md:p-6 border-b md:border-b-0 md:border-r border-slate-800 transition-all duration-300 w-full ${
-        isCollapsed ? 'md:w-20' : 'md:w-64'
+      className={`relative bg-slate-900 text-white flex flex-col justify-between p-2 xs:p-6 border-b xs:border-b-0 xs:border-r border-slate-800 transition-all duration-300 w-full ${
+        isCollapsed ? 'xs:w-20' : 'xs:w-64'
       }`}
     >
       {/* Sidebar Toggle Button (Hidden on Mobile) */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="hidden md:flex absolute -right-3 top-6 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 items-center justify-center shadow-md z-10 transition-colors"
+        className="hidden xs:flex absolute -right-3 top-6 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 items-center justify-center shadow-md z-10 transition-colors"
         title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
       >
         <svg
@@ -143,8 +154,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
       </button>
 
       <div>
-        <div className={`md:block transition-all duration-300 overflow-hidden ${isMobileExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 md:max-h-none md:opacity-100'}`}>
-          <nav className="grid grid-cols-4 gap-1 md:flex md:flex-col md:space-y-1 pb-2 md:pb-0">
+        <div className={`xs:block transition-all duration-300 overflow-hidden ${isMobileExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 xs:max-h-none xs:opacity-100'}`}>
+          <nav className="grid grid-cols-4 gap-1 xs:flex xs:flex-col xs:space-y-1 pb-2 xs:pb-0">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -152,29 +163,29 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 title={isCollapsed ? item.label : undefined}
-                className={`flex flex-col md:flex-row items-center justify-center md:justify-between gap-1 md:gap-3 px-2 py-2 md:px-4 md:py-3 rounded-xl font-semibold text-xs md:text-sm transition-all w-full ${
-                  isCollapsed ? 'md:justify-center md:px-2' : ''
+                className={`flex flex-col xs:flex-row items-center justify-center xs:justify-between gap-1 xs:gap-3 px-2 py-2 xs:px-4 xs:py-3 rounded-xl font-semibold text-xs xs:text-sm transition-all w-full ${
+                  isCollapsed ? 'xs:justify-center xs:px-2' : ''
                 } ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <div className="flex items-center gap-1 md:gap-3 w-full md:w-auto justify-center md:justify-start">
+                <div className="flex items-center gap-1 xs:gap-3 w-full xs:w-auto justify-center xs:justify-start">
                   <div className="relative">
                     {item.icon}
                     {/* Show a small dot on the icon ONLY when collapsed */}
                     {(item.count > 0 && isCollapsed) && (
-                      <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 shadow-sm ring-2 ring-slate-900 md:hidden"></span>
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 shadow-sm ring-2 ring-slate-900 xs:hidden"></span>
                     )}
                   </div>
-                  <div className={`items-center gap-2 truncate text-[10px] sm:text-xs md:text-sm ${isCollapsed ? 'hidden' : 'flex'}`}>
+                  <div className={`items-center gap-2 truncate text-[10px] sm:text-xs xs:text-sm ${isCollapsed ? 'hidden' : 'flex'}`}>
                     <span>{item.label}</span>
                   </div>
                 </div>
                 {/* Show the pill badge on the right border ONLY when expanded */}
                 {(item.count > 0 && !isCollapsed) && (
-                  <span className="hidden md:flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-slate-900/10 shrink-0">
+                  <span className="hidden xs:flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-slate-900/10 shrink-0">
                     {item.count > 99 ? '99+' : item.count}
                   </span>
                 )}
@@ -186,7 +197,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }) {
       </div>
 
       {/* Mobile Sidebar Toggle Button */}
-      <div className="md:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 z-20">
+      <div className="xs:hidden absolute -bottom-3 left-1/2 -translate-x-1/2 z-20">
         <button
           onClick={() => setIsMobileExpanded(!isMobileExpanded)}
           className="w-12 h-6 bg-slate-900 border-b border-l border-r border-slate-700 rounded-b-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 shadow-md transition-colors"

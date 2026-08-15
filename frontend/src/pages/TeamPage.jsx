@@ -240,42 +240,42 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className={inDashboard ? 'py-2' : 'min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8'}>
+    <div className={inDashboard ? 'py-2' : 'min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8'}>
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900">My Team</h1>
-          <p className="mt-2 text-lg text-slate-600">Collaborate and manage your hackathon squad.</p>
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">My Team</h1>
+          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">Collaborate and manage your hackathon squad.</p>
         </div>
 
         {/* Content */}
         {!team ? (
           // Empty State
-          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm max-w-lg mx-auto">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-700 shadow-sm max-w-lg mx-auto">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">You haven't joined a team yet</h3>
-            <p className="text-slate-500 mb-8">Create your own hackathon team or join an existing one using an invite code.</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">You haven't joined a team yet</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-8">Create your own hackathon team or join an existing one using an invite code.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {!readOnly && (
                 <>
                   <button
                     onClick={() => setIsJoinModalOpen(true)}
-                    className="px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl transition-all"
+                    className="px-8 py-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-bold rounded-xl transition-all shadow-sm"
                   >
                     Join with Code
                   </button>
                   <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95"
                   >
                     Create a New Team
                   </button>
@@ -286,18 +286,18 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
         ) : (
           // Populated State
           <div className="space-y-8">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-4 sm:p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-8">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 flex-wrap gap-4">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{team.name}</h2>
-                  <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">Created on {new Date(team.created_at).toLocaleDateString()}</p>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{team.name}</h2>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Created on {new Date(team.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
                   {team.team_code && (
                     <div className="flex flex-col gap-1 items-end mr-2">
-                      <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-bold text-slate-800">
+                      <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 shadow-inner">
                         <span>Code:</span>
-                        <span className="text-blue-600">{team.team_code}</span>
+                        <span className="text-blue-600 dark:text-blue-400">{team.team_code}</span>
                         <button 
                           onClick={() => {
                             navigator.clipboard.writeText(team.team_code);
@@ -345,14 +345,14 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                     team.leader_id !== currentUser?.id ? (
                       <button
                         onClick={handleLeaveTeam}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm"
+                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm active:scale-95"
                       >
                         Leave Team
                       </button>
                     ) : (
                       <button
                         onClick={() => setIsManageModalOpen(true)}
-                        className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm flex items-center gap-2"
+                        className="px-4 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold rounded-xl text-xs sm:text-sm transition-colors shadow-sm flex items-center gap-2 active:scale-95"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         Manage Team
@@ -365,9 +365,9 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
               <div className="space-y-4">
                 {team.mentor_id && (
                   <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-1 mb-4">
-                      <h3 className="text-lg font-bold text-slate-900">Team Mentor</h3>
-                      <span className="text-xs font-semibold text-slate-400">Click to view full details</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2 gap-1 mb-4">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">Team Mentor</h3>
+                      <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Click to view full details</span>
                     </div>
                     <div
                       onClick={() => setSelectedMember({
@@ -380,7 +380,7 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                         avatar_url: team.mentor_avatar_url,
                         isMentor: true
                       })}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-blue-300 hover:shadow-md cursor-pointer group"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 transition-all hover:bg-white dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md cursor-pointer group"
                     >
                       <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 w-full">
                         {team.mentor_avatar_url ? (
@@ -388,16 +388,16 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                             <img src={team.mentor_avatar_url} alt={team.mentor_name || team.mentor_email} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm shrink-0">
                             {(team.mentor_name || team.mentor_email)?.charAt(0).toUpperCase()}
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words whitespace-normal">
+                          <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-words whitespace-normal">
                             {team.mentor_name || team.mentor_email}
                           </p>
-                          <p className="text-xs sm:text-sm font-semibold text-slate-500 break-words whitespace-normal">
-                            Student ID: <span className="text-slate-700 font-bold">{team.mentor_student_id && team.mentor_student_id !== 'N/A' ? team.mentor_student_id : 'Not provided'}</span>
+                          <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 break-words whitespace-normal">
+                            Student ID: <span className="text-slate-700 dark:text-slate-300 font-bold">{team.mentor_student_id && team.mentor_student_id !== 'N/A' ? team.mentor_student_id : 'Not provided'}</span>
                           </p>
                         </div>
                       </div>
@@ -411,16 +411,16 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-1">
-                  <h3 className="text-lg font-bold text-slate-900">Team Members</h3>
-                  <span className="text-xs font-semibold text-slate-400">Click any member to view full details</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2 gap-1">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Team Members</h3>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Click any member to view full details</span>
                 </div>
                 <div className="grid gap-4">
                   {team.members.map((member) => (
                     <div 
                       key={member.id} 
                       onClick={() => setSelectedMember(member)}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-blue-300 hover:shadow-md cursor-pointer group"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 transition-all hover:bg-white dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md cursor-pointer group"
                     >
                       <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 w-full">
                         {member.avatar_url ? (
@@ -433,11 +433,11 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words whitespace-normal">
+                          <p className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-words whitespace-normal">
                             {member.name || member.email}
                           </p>
-                          <p className="text-xs sm:text-sm font-semibold text-slate-500 break-words whitespace-normal">
-                            Student ID: <span className="text-slate-700 font-bold">{member.student_id && member.student_id !== 'N/A' ? member.student_id : 'Not provided'}</span>
+                          <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 break-words whitespace-normal">
+                            Student ID: <span className="text-slate-700 dark:text-slate-300 font-bold">{member.student_id && member.student_id !== 'N/A' ? member.student_id : 'Not provided'}</span>
                           </p>
                         </div>
                       </div>
@@ -497,7 +497,7 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                 {(team.maxMembers === null || team.members.length < (team.maxMembers || 5)) && !team.is_full ? (
                   <button 
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="px-6 py-3 bg-white text-blue-600 font-bold rounded-xl border border-blue-200 hover:bg-blue-50 transition-all shadow-sm inline-flex items-center space-x-2"
+                    className="px-6 py-3 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-bold rounded-xl border border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all shadow-sm inline-flex items-center space-x-2 active:scale-95"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -505,7 +505,7 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                     <span>Add member ({team.maxMembers ? `${team.members.length}/${team.maxMembers}` : team.members.length})</span>
                   </button>
                 ) : (
-                  <div className="inline-flex items-center space-x-2 px-6 py-3 bg-slate-100 text-slate-500 font-bold rounded-xl border border-slate-200">
+                  <div className="inline-flex items-center space-x-2 px-6 py-3 bg-slate-100 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-bold rounded-xl border border-slate-200 dark:border-slate-700">
                     <span>{team.is_full ? 'Team Declared Full' : 'Team Maximum Limit Reached'} ({team.maxMembers ? `${team.members.length}/${team.maxMembers}` : team.members.length})</span>
                   </div>
                 )}
@@ -513,7 +513,7 @@ export default function TeamPage({ inDashboard = false, readOnly = false }) {
                 {!team.mentor_id && (
                   <button
                     onClick={() => setIsInviteMentorOpen(true)}
-                    className="px-6 py-3 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-bold rounded-xl transition-colors shadow-sm inline-flex items-center space-x-2"
+                    className="px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 font-bold rounded-xl transition-colors shadow-sm inline-flex items-center space-x-2 active:scale-95"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
