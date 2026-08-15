@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
-import { getTeamMessages, sendMessage, getUnreadCounts, markAsRead, getCommitteeMessages, sendCommitteeMessage, getCommitteeUnreadCounts, markCommitteeAsRead } from './chat.controller';
+import { getTeamMessages, sendMessage, getUnreadCounts, markAsRead, getCommitteeMessages, sendCommitteeMessage, getCommitteeUnreadCounts, markCommitteeAsRead, editMessage, deleteMessage, editCommitteeMessage, deleteCommitteeMessage } from './chat.controller';
 import { authMiddleware } from '../auth/auth.middleware';
 import { validateRequest } from '../../middlewares/validateRequest';
 import { chatValidator } from './chat.validator';
@@ -39,11 +39,15 @@ router.get('/committee/unread', getCommitteeUnreadCounts);
 router.post('/committee/read', markCommitteeAsRead);
 router.get('/committee', getCommitteeMessages);
 router.post('/committee', handleUpload, validateRequest(chatValidator.messageSchema), sendCommitteeMessage);
+router.put('/committee/messages/:messageId', validateRequest(chatValidator.messageSchema), editCommitteeMessage);
+router.delete('/committee/messages/:messageId', deleteCommitteeMessage);
 
 router.get('/unread', getUnreadCounts);
 router.post('/read/:teamId', markAsRead);
 
 router.get('/:teamId', getTeamMessages);
 router.post('/:teamId', handleUpload, validateRequest(chatValidator.messageSchema), sendMessage);
+router.put('/:teamId/messages/:messageId', validateRequest(chatValidator.messageSchema), editMessage);
+router.delete('/:teamId/messages/:messageId', deleteMessage);
 
 export default router;

@@ -619,9 +619,9 @@ export default function AdminMembersTab({ setParentActiveTab }) {
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <div>
-            <table className="w-full text-left border-collapse">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
                   {isSelectionMode && (

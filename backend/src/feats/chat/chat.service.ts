@@ -26,6 +26,7 @@ export const chatService = {
                 cm.message,
                 cm.image_url,
                 cm.created_at,
+                cm.is_edited,
                 u.role as sender_role,
                 COALESCE(ui.name, u.email) as sender_name,
                 ui.avatar_url as sender_avatar
@@ -58,6 +59,7 @@ export const chatService = {
                 i.message,
                 i.image_url,
                 i.created_at,
+                i.is_edited,
                 u.role as sender_role,
                 COALESCE(ui.name, u.email) as sender_name,
                 ui.avatar_url as sender_avatar
@@ -68,6 +70,54 @@ export const chatService = {
         
         const res = await pool.query(query, [teamId, senderId, message, imageUrl]);
         return res.rows[0];
+    },
+
+    /**
+     * Edit an existing message in a team chat.
+     */
+    async editMessage(messageId: string, newMessage: string) {
+        const query = `
+            WITH updated AS (
+                UPDATE team_chat_messages 
+                SET message = $1, is_edited = true
+                WHERE id = $2
+                RETURNING *
+            )
+            SELECT 
+                u.id,
+                u.team_id,
+                u.sender_id,
+                u.message,
+                u.image_url,
+                u.created_at,
+                u.is_edited,
+                usr.role as sender_role,
+                COALESCE(ui.name, usr.email) as sender_name,
+                ui.avatar_url as sender_avatar
+            FROM updated u
+            LEFT JOIN users usr ON u.sender_id = usr.id
+            LEFT JOIN user_info ui ON usr.id = ui.user_id
+        `;
+        const res = await pool.query(query, [newMessage, messageId]);
+        return res.rows[0];
+    },
+
+    /**
+     * Delete an existing message in a team chat.
+     */
+    async deleteMessage(messageId: string) {
+        const query = `
+            DELETE FROM team_chat_messages WHERE id = $1
+        `;
+        await pool.query(query, [messageId]);
+    },
+
+    /**
+     * Get sender ID of a team message.
+     */
+    async getMessageSender(messageId: string) {
+        const res = await pool.query(`SELECT sender_id FROM team_chat_messages WHERE id = $1`, [messageId]);
+        return res.rows[0]?.sender_id;
     },
 
     /**
@@ -142,6 +192,7 @@ export const chatService = {
                 cm.message,
                 cm.image_url,
                 cm.created_at,
+                cm.is_edited,
                 u.role as sender_role,
                 COALESCE(ui.name, u.email) as sender_name,
                 ui.avatar_url as sender_avatar
@@ -171,6 +222,7 @@ export const chatService = {
                 i.message,
                 i.image_url,
                 i.created_at,
+                i.is_edited,
                 u.role as sender_role,
                 COALESCE(ui.name, u.email) as sender_name,
                 ui.avatar_url as sender_avatar
@@ -181,6 +233,53 @@ export const chatService = {
         
         const res = await pool.query(query, [senderId, message, imageUrl]);
         return res.rows[0];
+    },
+
+    /**
+     * Edit an existing message in the committee chat.
+     */
+    async editCommitteeMessage(messageId: string, newMessage: string) {
+        const query = `
+            WITH updated AS (
+                UPDATE committee_chat_messages 
+                SET message = $1, is_edited = true
+                WHERE id = $2
+                RETURNING *
+            )
+            SELECT 
+                u.id,
+                u.sender_id,
+                u.message,
+                u.image_url,
+                u.created_at,
+                u.is_edited,
+                usr.role as sender_role,
+                COALESCE(ui.name, usr.email) as sender_name,
+                ui.avatar_url as sender_avatar
+            FROM updated u
+            LEFT JOIN users usr ON u.sender_id = usr.id
+            LEFT JOIN user_info ui ON usr.id = ui.user_id
+        `;
+        const res = await pool.query(query, [newMessage, messageId]);
+        return res.rows[0];
+    },
+
+    /**
+     * Delete an existing message in the committee chat.
+     */
+    async deleteCommitteeMessage(messageId: string) {
+        const query = `
+            DELETE FROM committee_chat_messages WHERE id = $1
+        `;
+        await pool.query(query, [messageId]);
+    },
+
+    /**
+     * Get sender ID of a committee message.
+     */
+    async getCommitteeMessageSender(messageId: string) {
+        const res = await pool.query(`SELECT sender_id FROM committee_chat_messages WHERE id = $1`, [messageId]);
+        return res.rows[0]?.sender_id;
     },
 
     /**

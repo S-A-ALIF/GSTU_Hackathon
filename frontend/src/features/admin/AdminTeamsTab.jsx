@@ -481,8 +481,8 @@ export default function AdminTeamsTab({ activeTab }) {
                 className={`bg-white rounded-2xl border border-slate-200 shadow-sm transition-all duration-500 ${hasOpenMenu ? 'relative z-30' : 'relative z-10'}`}
               >
                 {/* Team Header Row */}
-                <div className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors flex-wrap ${isExpanded ? 'rounded-t-2xl' : 'rounded-2xl'}`}>
-                  <div className="flex items-center gap-4 flex-1 cursor-pointer" onClick={() => !isSelectionMode && toggleExpand(team.id)}>
+                <div className={`p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors ${isExpanded ? 'rounded-t-2xl' : 'rounded-2xl'}`}>
+                  <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-[250px] cursor-pointer" onClick={() => !isSelectionMode && toggleExpand(team.id)}>
                     {isSelectionMode ? (
                       <div className="shrink-0 pl-1 pr-2 flex items-center justify-center">
                         <input
@@ -504,37 +504,41 @@ export default function AdminTeamsTab({ activeTab }) {
                         {isExpanded ? '▼' : '▶'}
                       </span>
                     )}
-                    <div className="min-w-0" onClick={(e) => isSelectionMode && toggleExpand(team.id)}>
+                    <div className="min-w-0 flex-1" onClick={(e) => isSelectionMode && toggleExpand(team.id)}>
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="font-black text-slate-900 text-base sm:text-lg truncate">{team.name}</h3>
+                        <h3 className="font-black text-slate-900 text-base sm:text-lg break-words">{team.name}</h3>
                         {team.is_banned && (
-                          <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-bold shrink-0">
+                          <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] sm:text-xs font-bold shrink-0">
                             BANNED
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {team.leader_avatar_url && !imageErrors[`${team.id}_leader`] ? (
-                          <img 
-                            src={team.leader_avatar_url} 
-                            alt="Leader Avatar" 
-                            className="w-7 h-7 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0"
-                            onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.leader_avatar_url); }}
-                            onError={() => setImageErrors(prev => ({...prev, [`${team.id}_leader`]: true}))}
-                          />
-                        ) : (
-                          <span className="text-lg shrink-0">👑</span>
-                        )}
-                        <p className="text-xs text-slate-500 truncate">
-                          Leader: <strong>{team.leader_name || team.leader_email}</strong> • Created{' '}
-                          {new Date(team.created_at).toLocaleDateString()}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                        <div className="flex items-center gap-1.5">
+                          {team.leader_avatar_url && !imageErrors[`${team.id}_leader`] ? (
+                            <img 
+                              src={team.leader_avatar_url} 
+                              alt="Leader Avatar" 
+                              className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+                              onClick={(e) => { e.stopPropagation(); setFullImageUrl(team.leader_avatar_url); }}
+                              onError={() => setImageErrors(prev => ({...prev, [`${team.id}_leader`]: true}))}
+                            />
+                          ) : (
+                            <span className="text-base sm:text-lg shrink-0">👑</span>
+                          )}
+                          <p className="text-xs text-slate-600 truncate max-w-[150px] xs:max-w-[200px]">
+                            Leader: <strong>{team.leader_name || team.leader_email}</strong>
+                          </p>
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-slate-400">
+                          Created {new Date(team.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto shrink-0">
-                    <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full font-bold text-xs shrink-0">
+                  <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0 ml-auto">
+                    <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg font-bold text-[10px] sm:text-xs shrink-0">
                       {team.members?.length || 0} Members
                     </span>
 
@@ -543,7 +547,7 @@ export default function AdminTeamsTab({ activeTab }) {
                         setDetailsModalData(team);
                         setDetailsModalType('team');
                       }}
-                      className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors"
+                      className="px-4 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors"
                     >
                       Details
                     </button>

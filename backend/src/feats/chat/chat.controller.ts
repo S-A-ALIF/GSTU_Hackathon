@@ -207,3 +207,145 @@ export const markCommitteeAsRead = async (req: Request, res: Response): Promise<
         res.status(500).json({ success: false, message: 'Error marking committee messages as read' });
     }
 };
+
+export const editMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).user.id;
+        const { teamId, messageId } = req.params;
+        const { message } = req.body;
+        
+        if (!message) {
+            res.status(400).json({ success: false, message: 'Message content is required' });
+            return;
+        }
+
+        const hasAccess = await chatService.verifyChatAccess(userId, teamId);
+        if (!hasAccess) {
+            res.status(403).json({ success: false, message: 'You do not have access to this team chat.' });
+            return;
+        }
+
+        const senderId = await chatService.getMessageSender(messageId);
+        if (!senderId) {
+            res.status(404).json({ success: false, message: 'Message not found' });
+            return;
+        }
+        
+        if (senderId !== userId) {
+            res.status(403).json({ success: false, message: 'You can only edit your own messages.' });
+            return;
+        }
+
+        const editedMessage = await chatService.editMessage(messageId, message);
+
+        req.app.locals.io?.to(`team_${teamId}`).emit('messageEdited', editedMessage);
+
+        res.status(200).json({ success: true, data: editedMessage });
+    } catch (error: any) {
+        console.error('[ChatController] Error editing message:', error);
+        res.status(500).json({ success: false, message: 'Error editing message' });
+    }
+};
+
+export const deleteMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).user.id;
+        const { teamId, messageId } = req.params;
+
+        const hasAccess = await chatService.verifyChatAccess(userId, teamId);
+        if (!hasAccess) {
+            res.status(403).json({ success: false, message: 'You do not have access to this team chat.' });
+            return;
+        }
+
+        const senderId = await chatService.getMessageSender(messageId);
+        if (!senderId) {
+            res.status(404).json({ success: false, message: 'Message not found' });
+            return;
+        }
+        
+        if (senderId !== userId) {
+            res.status(403).json({ success: false, message: 'You can only delete your own messages.' });
+            return;
+        }
+
+        await chatService.deleteMessage(messageId);
+
+        req.app.locals.io?.to(`team_${teamId}`).emit('messageDeleted', { messageId, teamId });
+
+        res.status(200).json({ success: true, message: 'Message deleted successfully' });
+    } catch (error: any) {
+        console.error('[ChatController] Error deleting message:', error);
+        res.status(500).json({ success: false, message: 'Error deleting message' });
+    }
+};
+
+export const editCommitteeMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const user = (req as any).user;
+        if (user.role !== 'admin' && user.role !== 'mentor') {
+            res.status(403).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+
+        const { messageId } = req.params;
+        const { message } = req.body;
+        
+        if (!message) {
+            res.status(400).json({ success: false, message: 'Message content is required' });
+            return;
+        }
+
+        const senderId = await chatService.getCommitteeMessageSender(messageId);
+        if (!senderId) {
+            res.status(404).json({ success: false, message: 'Message not found' });
+            return;
+        }
+        
+        if (senderId !== user.id) {
+            res.status(403).json({ success: false, message: 'You can only edit your own messages.' });
+            return;
+        }
+
+        const editedMessage = await chatService.editCommitteeMessage(messageId, message);
+
+        req.app.locals.io?.to('committee_chat').emit('committeeMessageEdited', editedMessage);
+
+        res.status(200).json({ success: true, data: editedMessage });
+    } catch (error: any) {
+        console.error('[ChatController] Error editing committee message:', error);
+        res.status(500).json({ success: false, message: 'Error editing committee message' });
+    }
+};
+
+export const deleteCommitteeMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const user = (req as any).user;
+        if (user.role !== 'admin' && user.role !== 'mentor') {
+            res.status(403).json({ success: false, message: 'Unauthorized' });
+            return;
+        }
+
+        const { messageId } = req.params;
+
+        const senderId = await chatService.getCommitteeMessageSender(messageId);
+        if (!senderId) {
+            res.status(404).json({ success: false, message: 'Message not found' });
+            return;
+        }
+        
+        if (senderId !== user.id) {
+            res.status(403).json({ success: false, message: 'You can only delete your own messages.' });
+            return;
+        }
+
+        await chatService.deleteCommitteeMessage(messageId);
+
+        req.app.locals.io?.to('committee_chat').emit('committeeMessageDeleted', { messageId });
+
+        res.status(200).json({ success: true, message: 'Message deleted successfully' });
+    } catch (error: any) {
+        console.error('[ChatController] Error deleting committee message:', error);
+        res.status(500).json({ success: false, message: 'Error deleting committee message' });
+    }
+};

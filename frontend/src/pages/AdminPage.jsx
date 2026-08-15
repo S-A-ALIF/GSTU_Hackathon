@@ -152,7 +152,7 @@ export default function AdminPage() {
           setActiveTab={setActiveTab}
         />
 
-        <main className={`flex-1 overflow-x-hidden h-full ${activeTab === 'committee_chat' ? 'p-2 sm:p-4 lg:p-8 min-h-0 overflow-hidden flex flex-col' : 'p-6 sm:p-10 overflow-y-auto'}`}>
+        <main className={`flex-1 overflow-x-auto h-full ${activeTab === 'committee_chat' ? 'p-2 sm:p-4 lg:p-8 min-h-0 overflow-hidden flex flex-col' : 'p-6 sm:p-10 overflow-y-auto'}`}>
           <div className={`mx-auto ${activeTab === 'committee_chat' ? 'h-full w-full' : 'max-w-7xl'}`}>
             {visitedTabs.dashboard && (
               <div className={activeTab === 'dashboard' ? 'block' : 'hidden'}>

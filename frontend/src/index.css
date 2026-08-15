@@ -251,25 +251,11 @@ html.dark .quill-editor-container .ql-editor .text-gray-900 {
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 
-/* Custom visible scrollbar for chat areas */
-.chat-scrollbar::-webkit-scrollbar {
-  width: 10px;
+/* Custom scrollbar hiding utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
-.chat-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.chat-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.4);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-.chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(148, 163, 184, 0.8);
-}
-html.dark .chat-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(71, 85, 105, 0.4);
-}
-html.dark .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(71, 85, 105, 0.8);
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
