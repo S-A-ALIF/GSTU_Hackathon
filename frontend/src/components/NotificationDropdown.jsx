@@ -508,7 +508,7 @@ export default function NotificationDropdown() {
 
             {/* Message Body */}
             <div className={`p-4 sm:p-6 flex-1 min-h-0 space-y-4 relative overflow-y-auto overflow-x-hidden`}>
-              <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 w-full h-full relative">
+              <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 w-full min-h-full relative">
                 <div className={`text-sm md:text-base text-slate-700 dark:text-slate-200 font-medium whitespace-pre-wrap break-words leading-relaxed prose prose-sm dark:prose-invert max-w-none w-full prose-pre:whitespace-pre-wrap prose-pre:break-words prose-p:break-words`} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatNotificationMessage(selectedNotificationModal.message, false)) }}>
                 </div>
               </div>
