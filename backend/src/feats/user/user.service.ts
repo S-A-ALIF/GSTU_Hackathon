@@ -105,10 +105,7 @@ export const uploadAvatarToCloudinary = async (userId: string, file: Express.Mul
             {
                 folder: 'hackathon_avatars',
                 public_id: `user_${userId}`,
-                overwrite: true,
-                transformation: [
-                    { width: 500, height: 500, crop: 'fill', gravity: 'face' }
-                ]
+                overwrite: true
             },
             async (error, result) => {
                 if (error) {

@@ -98,6 +98,7 @@ export const resignMentorship = async (req: Request, res: Response): Promise<voi
         const { id } = req.params;
         await mentorService.resignMentorship(mentorId, id);
         req.app.locals.io?.emit('statsUpdated');
+        req.app.locals.io?.emit('newAdminMessage');
         res.status(200).json({ success: true, message: 'Resigned successfully' });
     } catch (error: any) {
         console.error('[MentorController] Error resigning mentorship:', error);

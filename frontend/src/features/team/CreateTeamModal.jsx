@@ -12,7 +12,6 @@ export default function CreateTeamModal({ isOpen, onClose, mode = 'create', onSu
   const searchRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
-  const [successInfo, setSuccessInfo] = useState(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -62,7 +61,6 @@ export default function CreateTeamModal({ isOpen, onClose, mode = 'create', onSu
     setSearchResults([]);
     setSelectedUser(null);
     setShowDropdown(false);
-    setSuccessInfo(null);
     onClose();
   };
 
@@ -117,11 +115,8 @@ export default function CreateTeamModal({ isOpen, onClose, mode = 'create', onSu
 
         if (res.ok && (data.success || res.status === 200)) {
           toast.success(`Invitation sent to ${selectedUser.email}!`);
-          setSuccessInfo({
-            email: selectedUser.email,
-            message: data.message
-          });
           onSuccess?.();
+          handleClose();
         } else {
           toast.error(data.message || 'Failed to send invitation');
         }
@@ -147,52 +142,6 @@ export default function CreateTeamModal({ isOpen, onClose, mode = 'create', onSu
       ></div>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="p-8">
-          {successInfo ? (
-            <div className="text-center space-y-6 animate-in fade-in zoom-in duration-200">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">Invitation Sent!</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  We sent an in-app invitation to <span className="font-bold text-slate-800">{successInfo.email}</span>.
-                </p>
-              </div>
-
-              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left">
-                <p className="text-sm font-semibold text-slate-800">
-                  How they can join:
-                </p>
-                <p className="text-xs text-slate-500 mt-1">
-                  The user will receive an invitation in their <b>in-app notification dropdown</b>. They can click <b>Accept</b> or <b>Reject</b> directly from their notifications without needing any email PIN code!
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2 pt-2">
-                <button 
-                  type="button"
-                  onClick={handleClose}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-md transition-all"
-                >
-                  Done
-                </button>
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedUser(null);
-                    setSuccessInfo(null);
-                  }}
-                  className="w-full text-slate-500 hover:text-slate-800 font-semibold py-2 transition-colors text-sm"
-                >
-                  Invite Another Teammate
-                </button>
-              </div>
-            </div>
-          ) : (
             <>
               <h2 className="text-3xl font-black text-slate-900 mb-2">{title}</h2>
               <p className="text-slate-500 mb-8">{subtitle}</p>
@@ -292,7 +241,6 @@ export default function CreateTeamModal({ isOpen, onClose, mode = 'create', onSu
                 </button>
               </form>
             </>
-          )}
         </div>
       </div>
     </div>

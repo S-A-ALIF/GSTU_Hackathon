@@ -82,6 +82,11 @@ export const uploadAvatar = async (req: Request, res: Response, next: NextFuncti
 
         const avatarUrl = await userService.uploadAvatarToCloudinary(userId, file);
 
+        const io = req.app.locals.io;
+        if (io) {
+            io.emit('user_avatar_updated', { userId, avatarUrl });
+        }
+
         res.status(200).json({
             status: 'success',
             success: true,

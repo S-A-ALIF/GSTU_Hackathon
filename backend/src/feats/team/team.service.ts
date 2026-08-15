@@ -399,7 +399,7 @@ export const teamService = {
                 throw new Error('You are not in any team.');
             }
 
-            const teamRes = await client.query('SELECT id, leader_id FROM teams WHERE id = $1', [teamId]);
+            const teamRes = await client.query('SELECT id, name, leader_id FROM teams WHERE id = $1', [teamId]);
             const team = teamRes.rows[0];
 
             if (team.leader_id === userId) {
@@ -415,7 +415,22 @@ export const teamService = {
                 }
             }
 
+            const userRes = await client.query('SELECT COALESCE(ui.name, u.email) as name FROM users u LEFT JOIN user_info ui ON u.id = ui.user_id WHERE u.id = $1', [userId]);
+            const userName = userRes.rows[0]?.name || 'A member';
+            
+            const leaderEmailRes = await client.query('SELECT email FROM users WHERE id = $1', [team.leader_id]);
+            const leaderEmail = leaderEmailRes.rows[0]?.email;
+
             await client.query('DELETE FROM team_members WHERE team_id = $1 AND user_id = $2', [teamId, userId]);
+
+            if (leaderEmail) {
+                await notificationService.createNotification(
+                    leaderEmail,
+                    `${userName} has left your team "${team.name}".`,
+                    null
+                );
+            }
+
             await client.query('COMMIT');
             return { success: true };
         } catch (error) {

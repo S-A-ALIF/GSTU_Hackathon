@@ -52,6 +52,7 @@ export const inviteToTeam = async (req: Request, res: Response): Promise<void> =
         await teamService.inviteMember(userId, userEmail, teamId, emailToInvite);
 
         const msg = `Invitation sent to ${emailToInvite}! They can accept or reject from their notifications.`;
+        req.app.locals.io?.emit('newAdminMessage');
 
         res.status(200).json({ 
             success: true, 
@@ -145,6 +146,9 @@ export const leaveTeam = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = (req as any).user.id;
         const result = await teamService.leaveTeam(userId);
+
+        req.app.locals.io?.emit('statsUpdated');
+        req.app.locals.io?.emit('newAdminMessage');
 
         res.status(200).json({ success: true, status: 'success', message: 'Left team successfully', data: result });
     } catch (error: any) {

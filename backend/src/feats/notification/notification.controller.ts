@@ -110,6 +110,8 @@ export const rejectInvitationNotification = async (req: Request, res: Response):
         }
 
         const updated = await notificationService.rejectTeamInvitation(id, targetEmail);
+        req.app.locals.io?.emit('statsUpdated');
+        req.app.locals.io?.emit('newAdminMessage');
         res.status(200).json({ success: true, status: 'success', message: 'Invitation rejected and invalidated.', data: updated });
     } catch (error: any) {
         console.error('[NotificationController] Error in rejectInvitationNotification:', error);
@@ -136,6 +138,8 @@ export const acceptInvitationNotification = async (req: Request, res: Response):
         }
 
         const updated = await notificationService.acceptTeamInvitation(id, targetEmail);
+        req.app.locals.io?.emit('statsUpdated');
+        req.app.locals.io?.emit('newAdminMessage');
         res.status(200).json({ success: true, status: 'success', message: 'Invitation accepted.', data: updated });
     } catch (error: any) {
         console.error('[NotificationController] Error in acceptInvitationNotification:', error);

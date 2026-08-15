@@ -153,10 +153,28 @@ export function AuthProvider({ children }) {
       }
     };
 
+    const handleAvatarUpdated = (data) => {
+      if (data.userId === currentUser.id) {
+        setUserProfile(prev => prev ? {
+          ...prev,
+          avatar_url: data.avatarUrl
+        } : null);
+      }
+      
+      const cached = userCache.get(data.userId);
+      if (cached) {
+        userCache.set(data.userId, { ...cached, avatar_url: data.avatarUrl });
+      }
+      
+      window.dispatchEvent(new CustomEvent('user_avatar_updated_global', { detail: data }));
+    };
+
     socket.on('usersBanUpdated', handleBanUpdated);
+    socket.on('user_avatar_updated', handleAvatarUpdated);
     
     return () => {
       socket.off('usersBanUpdated', handleBanUpdated);
+      socket.off('user_avatar_updated', handleAvatarUpdated);
     };
   }, [currentUser?.id]);
 
