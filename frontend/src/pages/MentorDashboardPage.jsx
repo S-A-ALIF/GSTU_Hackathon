@@ -15,7 +15,7 @@ import ChatPage from './ChatPage';
 import CommitteeChatPage from './CommitteeChatPage';
 
 export default function MentorDashboardPage() {
-  const { currentUser, logout, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
+  const { currentUser, userProfile, logout, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
     return getActiveTab('hackathon_mentor_tab', 'dashboard');
@@ -268,9 +268,17 @@ export default function MentorDashboardPage() {
               }`}
               title="Profile"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-300">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-              </svg>
+              {userProfile?.avatar_url ? (
+                <img 
+                  src={userProfile.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-300">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+              )}
             </button>
 
             {/* Hamburger Menu */}

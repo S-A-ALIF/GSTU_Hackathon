@@ -1003,7 +1003,7 @@ export const rejectSubmission = async (req: Request, res: Response): Promise<voi
 
         await pool.query(`
             UPDATE teams
-            SET is_submitted = false, submitted_at = NULL, github_link = NULL, drive_link = NULL
+            SET is_submitted = false, submitted_at = NULL, repo_url = NULL, live_url = NULL, video_url = NULL
             WHERE id = $1
         `, [teamId]);
 
