@@ -16,6 +16,7 @@ import RulesPage from './pages/RulesPage';
 import AdminPage from './pages/AdminPage';
 import MentorDashboardPage from './pages/MentorDashboardPage';
 import ChatPage from './pages/ChatPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />

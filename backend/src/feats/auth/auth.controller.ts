@@ -58,3 +58,42 @@ export const getMe = async (req: Request, res: Response, next: NextFunction) => 
         next(error);
     }
 };
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { email } = sanitizeAuthInput(req.body);
+        
+        if (!email) {
+            return res.status(400).json({ status: 'error', message: 'Email is required' });
+        }
+
+        await authService.requestPasswordReset(email);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'An OTP has been sent to your email.'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { otp, newPassword } = req.body; 
+        const { email } = sanitizeAuthInput(req.body);
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ status: 'error', message: 'Email, OTP, and new password are required' });
+        }
+
+        await authService.resetPassword(email, otp, newPassword);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Password reset successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+};

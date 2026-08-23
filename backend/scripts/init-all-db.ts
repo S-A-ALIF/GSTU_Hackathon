@@ -15,10 +15,14 @@ const initAllTables = async () => {
                 role VARCHAR(50) NOT NULL DEFAULT 'student',
                 is_banned BOOLEAN DEFAULT false,
                 ban_reason TEXT DEFAULT NULL,
+                reset_password_otp VARCHAR(4) DEFAULT NULL,
+                reset_password_expires TIMESTAMP DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT false;
             ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT DEFAULT NULL;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_otp VARCHAR(4) DEFAULT NULL;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP DEFAULT NULL;
         `);
 
         console.log("2️⃣ Creating 'user_info' table...");

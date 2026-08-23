@@ -127,11 +127,8 @@ export default function LoginModal({ isOpen, onClose }) {
         )}
 
         <div className="mt-4 text-center">
-          <Link to="/" onClick={onClose} className="text-sm font-semibold text-slate-400 hover:text-slate-600 transition-colors inline-flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-            </svg>
-            Go to Landing Page
+          <Link to="/forgot-password" onClick={onClose} className="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+            Forgot Password?
           </Link>
         </div>
       </div>

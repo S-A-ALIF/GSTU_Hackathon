@@ -4,6 +4,7 @@ import { pool } from '../../config/db.config';
 import { CustomError } from '../../error/customErrors';
 import { generateToken } from '../../config/jwt.config';
 import { User } from './user.model';
+import { sendEmail } from '../email/email.service';
 
 export const registerUser = async (userData: any): Promise<User> => {
     const { email, password, role, name, student_id, batch_session } = userData;
@@ -172,7 +173,6 @@ export const getMe = async (userId: string, role?: string) => {
             ? (profile.ban_reason || 'Violation of platform rules.') 
             : (profile.team_is_banned ? (profile.team_ban_reason || 'Your team has been banned.') : null);
 
-        profile.is_banned = derivedIsBanned;
         profile.ban_reason = derivedBanReason;
 
         return profile;
@@ -180,5 +180,95 @@ export const getMe = async (userId: string, role?: string) => {
         if (error instanceof CustomError) throw error;
         console.error('Service Error [getMe]:', error);
         throw new CustomError('Failed to fetch user profile', 500);
+    }
+};
+
+const generateOTP = (length: number = 4) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let otp = '';
+    for (let i = 0; i < length; i++) {
+        otp += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return otp;
+};
+
+export const requestPasswordReset = async (email: string) => {
+    try {
+        const result = await pool.query('SELECT id, email FROM users WHERE email = $1', [email]);
+        const user = result.rows[0];
+
+        if (!user) {
+            throw new CustomError('No user with such email exists', 404);
+        }
+
+        const otp = generateOTP(4);
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes expiry
+
+        await pool.query(
+            'UPDATE users SET reset_password_otp = $1, reset_password_expires = $2 WHERE email = $3',
+            [otp, expiresAt, email]
+        );
+
+        const emailSent = await sendEmail({
+            to: email,
+            subject: 'Your Password Reset OTP',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>Password Reset Request</h2>
+                    <p>You have requested to reset your password. Use the following OTP to proceed. It is valid for 10 minutes.</p>
+                    <div style="background-color: #f3f4f6; padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 8px; margin: 20px 0;">
+                        ${otp}
+                    </div>
+                    <p>If you did not request this, please ignore this email.</p>
+                </div>
+            `
+        });
+
+        if (!emailSent) {
+            console.error('Failed to send OTP email to', email);
+        }
+
+    } catch (error: any) {
+        if (error instanceof CustomError) throw error;
+        console.error('Service Error [requestPasswordReset]:', error);
+        throw new CustomError('Failed to request password reset', 500);
+    }
+};
+
+export const resetPassword = async (email: string, otp: string, newPassword: string) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const result = await client.query(
+            'SELECT id, reset_password_otp, reset_password_expires FROM users WHERE email = $1',
+            [email]
+        );
+        const user = result.rows[0];
+
+        if (!user || user.reset_password_otp !== otp) {
+            throw new CustomError('Invalid OTP', 400);
+        }
+
+        if (new Date() > new Date(user.reset_password_expires)) {
+            throw new CustomError('OTP has expired', 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await client.query(
+            'UPDATE users SET password = $1, reset_password_otp = NULL, reset_password_expires = NULL WHERE id = $2',
+            [hashedPassword, user.id]
+        );
+
+        await client.query('COMMIT');
+    } catch (error: any) {
+        await client.query('ROLLBACK');
+        if (error instanceof CustomError) throw error;
+        console.error('Service Error [resetPassword]:', error);
+        throw new CustomError('Failed to reset password', 500);
+    } finally {
+        client.release();
     }
 };
