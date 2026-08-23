@@ -50,6 +50,16 @@ router.post(
 );
 
 /**
+ * @route   POST /api/v1/auth/verify-otp
+ * @desc    Verify OTP for password reset
+ * @access  Public
+ */
+router.post(
+    '/verify-otp',
+    authController.verifyOtp
+);
+
+/**
  * @route   POST /api/v1/auth/reset-password
  * @desc    Reset password using OTP
  * @access  Public

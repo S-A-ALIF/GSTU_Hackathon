@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL } from '../config';
 import { useAuth, socket } from '../contexts/AuthContext';
+import { getActiveTab, setActiveTab as setStorageTab } from '../utils/tabStorage';
 import { toast } from 'sonner';
 import NotificationDropdown from '../components/NotificationDropdown';
 import FeedbackModal from '../components/FeedbackModal';
@@ -17,11 +18,11 @@ export default function MentorDashboardPage() {
   const { currentUser, logout, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('hackathon_mentor_tab') || 'dashboard';
+    return getActiveTab('hackathon_mentor_tab', 'dashboard');
   });
 
   useEffect(() => {
-    localStorage.setItem('hackathon_mentor_tab', activeTab);
+    setStorageTab('hackathon_mentor_tab', activeTab);
   }, [activeTab]);
 
   useEffect(() => {

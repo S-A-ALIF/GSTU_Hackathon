@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_URL } from '../config';
 import { toast } from 'sonner';
 import ConfirmModal from '../components/ConfirmModal';
+import { getActiveTab, setActiveTab as setStorageTab } from '../utils/tabStorage';
 
 export default function ProjectPage({ inDashboard = false }) {
   const { currentUser, hackStartTime, hackEndTime, isSubmissionOpen } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('hackathon_project_tab') || 'overview';
+    return getActiveTab('hackathon_project_tab', 'overview');
   });
 
   useEffect(() => {
-    localStorage.setItem('hackathon_project_tab', activeTab);
+    setStorageTab('hackathon_project_tab', activeTab);
   }, [activeTab]);
 
   const [team, setTeam] = useState(null);

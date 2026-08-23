@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { adminCache } from '../features/admin/adminCache';
 import { userCache } from '../utils/userCache';
+import { clearAllTabs } from '../utils/tabStorage';
 import { io } from 'socket.io-client';
 
 export const socket = io(API_URL, {
@@ -374,6 +375,7 @@ export function AuthProvider({ children }) {
       }
 
       // Save token and user
+      clearAllTabs();
       localStorage.setItem('token', data.token);
       localStorage.setItem('currentUser', JSON.stringify(data.data));
       setCurrentUser(data.data);
@@ -424,6 +426,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     adminCache.clear();
     userCache.clear();
+    clearAllTabs();
     setCurrentUser(null);
     setUserProfile(null);
     localStorage.removeItem('currentUser');

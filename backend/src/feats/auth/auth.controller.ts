@@ -67,11 +67,32 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
             return res.status(400).json({ status: 'error', message: 'Email is required' });
         }
 
-        await authService.requestPasswordReset(email);
+        const { cooldown } = await authService.requestPasswordReset(email);
 
         res.status(200).json({
             status: 'success',
-            message: 'An OTP has been sent to your email.'
+            message: 'An OTP has been sent to your email.',
+            cooldown
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { otp } = req.body;
+        const { email } = sanitizeAuthInput(req.body);
+
+        if (!email || !otp) {
+            return res.status(400).json({ status: 'error', message: 'Email and OTP are required' });
+        }
+
+        await authService.verifyOtp(email, otp);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'OTP verified successfully'
         });
     } catch (error) {
         next(error);

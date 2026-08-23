@@ -23,6 +23,8 @@ const initAllTables = async () => {
             ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT DEFAULT NULL;
             ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_otp VARCHAR(4) DEFAULT NULL;
             ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_password_expires TIMESTAMP DEFAULT NULL;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS otp_request_count INT DEFAULT 0;
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS last_otp_request TIMESTAMP DEFAULT NULL;
         `);
 
         console.log("2️⃣ Creating 'user_info' table...");

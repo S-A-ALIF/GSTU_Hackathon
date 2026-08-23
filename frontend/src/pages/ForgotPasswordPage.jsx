@@ -12,6 +12,7 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const otpRefs = useRef([]);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
@@ -22,9 +23,19 @@ export default function ForgotPasswordPage() {
     }
   }, [step]);
 
+  useEffect(() => {
+    let timer;
+    if (cooldown > 0) {
+      timer = setInterval(() => {
+        setCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   const handleRequestOtp = async (e) => {
-    e.preventDefault();
-    if (!email) return;
+    e?.preventDefault?.();
+    if (!email || cooldown > 0) return;
     
     setIsLoading(true);
     try {
@@ -37,7 +48,16 @@ export default function ForgotPasswordPage() {
       
       if (response.ok) {
         toast.success(data.message || 'OTP sent to your email.');
+        if (data.cooldown) {
+          setCooldown(data.cooldown);
+        }
         setStep(2);
+      } else if (response.status === 429) {
+        const match = data.message?.match(/wait (\d+) seconds/);
+        if (match) {
+          setCooldown(parseInt(match[1], 10));
+        }
+        toast.error(data.message);
       } else {
         toast.error(data.message || 'Failed to send OTP.');
       }
@@ -66,14 +86,51 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleVerifyOtp = (e) => {
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text/plain').slice(0, 4).toUpperCase();
+    if (!pastedData) return;
+    
+    const newOtp = [...otp];
+    for (let i = 0; i < pastedData.length; i++) {
+      if (i < 4) newOtp[i] = pastedData[i];
+    }
+    setOtp(newOtp);
+    
+    // Focus the next empty input or the last one
+    const focusIndex = Math.min(pastedData.length, 3);
+    if (otpRefs.current[focusIndex]) {
+      otpRefs.current[focusIndex].focus();
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const otpValue = otp.join('');
     if (otpValue.length !== 4) {
       toast.error('Please enter the 4-character OTP.');
       return;
     }
-    setStep(3);
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otpValue }),
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setStep(3);
+      } else {
+        toast.error(data.message || 'Invalid OTP.');
+      }
+    } catch (error) {
+      toast.error('An error occurred. Please verify your connection.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResetPassword = async (e) => {
@@ -162,12 +219,12 @@ export default function ForgotPasswordPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || cooldown > 0}
                   className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all ${
-                    isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                    (isLoading || cooldown > 0) ? 'opacity-70 cursor-not-allowed' : ''
                   }`}
                 >
-                  {isLoading ? 'Sending...' : 'Send reset link'}
+                  {isLoading ? 'Sending...' : cooldown > 0 ? `Resend available in ${cooldown}s` : 'Send reset link'}
                 </button>
               </div>
             </form>
@@ -191,6 +248,7 @@ export default function ForgotPasswordPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
                       className="w-12 sm:w-14 h-14 sm:h-16 text-center text-xl sm:text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all uppercase"
                     />
                   ))}
@@ -200,18 +258,27 @@ export default function ForgotPasswordPage() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                  disabled={isLoading}
+                  className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  Verify Code
+                  {isLoading ? 'Verifying...' : 'Verify Code'}
                 </button>
               </div>
-              <div className="text-center">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  className="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors"
                 >
-                  Go back
+                  Change email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRequestOtp}
+                  disabled={isLoading || cooldown > 0}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? 'Sending...' : cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
                 </button>
               </div>
             </form>

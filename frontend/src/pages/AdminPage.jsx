@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getActiveTab, setActiveTab as setStorageTab } from '../utils/tabStorage';
 import AdminSidebar from '../features/admin/AdminSidebar';
 import AdminDashboardTab from '../features/admin/AdminDashboardTab';
 import AdminTeamsTab from '../features/admin/AdminTeamsTab';
@@ -20,11 +21,11 @@ export default function AdminPage() {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('hackathon_admin_tab') || 'dashboard';
+    return getActiveTab('hackathon_admin_tab', 'dashboard');
   });
 
   useEffect(() => {
-    localStorage.setItem('hackathon_admin_tab', activeTab);
+    setStorageTab('hackathon_admin_tab', activeTab);
   }, [activeTab]);
 
   const [visitedTabs, setVisitedTabs] = useState({ dashboard: true });

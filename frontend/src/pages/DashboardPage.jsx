@@ -13,12 +13,13 @@ import SettingsPage from './SettingsPage';
 import QnAPage from './QnAPage';
 import ChatPage from './ChatPage';
 import BanBanner from '../components/BanBanner';
+import { getActiveTab, setActiveTab as setStorageTab } from '../utils/tabStorage';
 
 export default function DashboardPage() {
   const { currentUser, userProfile, logout, workspaceOpen, problemsOpen, feedbackOpen, fetchPlatformSettings, unreadCounts } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('hackathon_active_tab') || 'team';
+    return getActiveTab('hackathon_active_tab', 'team');
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   const menuRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem('hackathon_active_tab', activeTab);
+    setStorageTab('hackathon_active_tab', activeTab);
   }, [activeTab]);
 
 

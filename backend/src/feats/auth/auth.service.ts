@@ -194,11 +194,32 @@ const generateOTP = (length: number = 4) => {
 
 export const requestPasswordReset = async (email: string) => {
     try {
-        const result = await pool.query('SELECT id, email FROM users WHERE email = $1', [email]);
+        const result = await pool.query('SELECT id, email, otp_request_count, EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - last_otp_request)) as time_diff_sec FROM users WHERE email = $1', [email]);
         const user = result.rows[0];
 
         if (!user) {
-            throw new CustomError('No user with such email exists', 404);
+            throw new CustomError('no user with such email exists', 404);
+        }
+
+        let requestCount = user.otp_request_count || 0;
+        const timeDiffSec = user.time_diff_sec !== null ? Math.floor(user.time_diff_sec) : null;
+
+        if (timeDiffSec !== null) {
+            // If within 5 minutes (300 seconds)
+            if (timeDiffSec >= 0 && timeDiffSec < 300) {
+                const requiredDelay = requestCount * 15;
+                if (timeDiffSec < requiredDelay) {
+                    const remainingSeconds = requiredDelay - timeDiffSec;
+                    throw new CustomError(`Please wait ${remainingSeconds} seconds before requesting a new OTP.`, 429);
+                }
+                requestCount++;
+            } else {
+                // Older than 5 minutes (or negative time anomaly), reset count
+                requestCount = 1;
+            }
+        } else {
+            // First time
+            requestCount = 1;
         }
 
         const otp = generateOTP(4);
@@ -206,8 +227,8 @@ export const requestPasswordReset = async (email: string) => {
         expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minutes expiry
 
         await pool.query(
-            'UPDATE users SET reset_password_otp = $1, reset_password_expires = $2 WHERE email = $3',
-            [otp, expiresAt, email]
+            'UPDATE users SET reset_password_otp = $1, reset_password_expires = $2, otp_request_count = $3, last_otp_request = CURRENT_TIMESTAMP WHERE email = $4',
+            [otp, expiresAt, requestCount, email]
         );
 
         const emailSent = await sendEmail({
@@ -229,10 +250,36 @@ export const requestPasswordReset = async (email: string) => {
             console.error('Failed to send OTP email to', email);
         }
 
+        return { cooldown: requestCount * 15 };
+
     } catch (error: any) {
         if (error instanceof CustomError) throw error;
         console.error('Service Error [requestPasswordReset]:', error);
         throw new CustomError('Failed to request password reset', 500);
+    }
+};
+
+export const verifyOtp = async (email: string, otp: string) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, reset_password_otp, reset_password_expires FROM users WHERE email = $1',
+            [email]
+        );
+        const user = result.rows[0];
+
+        if (!user || user.reset_password_otp !== otp) {
+            throw new CustomError('Invalid OTP', 400);
+        }
+
+        if (new Date() > new Date(user.reset_password_expires)) {
+            throw new CustomError('OTP has expired', 400);
+        }
+        
+        return true;
+    } catch (error: any) {
+        if (error instanceof CustomError) throw error;
+        console.error('Service Error [verifyOtp]:', error);
+        throw new CustomError('Failed to verify OTP', 500);
     }
 };
 
@@ -258,7 +305,7 @@ export const resetPassword = async (email: string, otp: string, newPassword: str
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         await client.query(
-            'UPDATE users SET password = $1, reset_password_otp = NULL, reset_password_expires = NULL WHERE id = $2',
+            'UPDATE users SET password = $1, reset_password_otp = NULL, reset_password_expires = NULL, otp_request_count = 0, last_otp_request = NULL WHERE id = $2',
             [hashedPassword, user.id]
         );
 
